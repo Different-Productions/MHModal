@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 /// Gesture handling for the modal view.
 extension ModalView {
@@ -55,12 +56,16 @@ extension ModalView {
 
   /// Dismisses the modal with animation
   func dismissModal() {
+    // Dismiss keyboard if it's visible
+    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    
     // Use standardSpring for consistent animations
     withAnimation(.spring(
       response: standardSpring.response,
       dampingFraction: standardSpring.dampingFraction
     )) {
       isPresented = false
+      keyboardHeight = 0
     }
   }
 

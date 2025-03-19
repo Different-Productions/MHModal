@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 /// The content container view for the modal.
 extension ModalView {
@@ -17,15 +18,15 @@ extension ModalView {
       if appearance.showDragIndicator {
         dragIndicatorView
       }
-
+      
       // Content with automatic scrolling if needed
       if contentSize.height > modalHeight - topPadding - 20 {
         ScrollView {
           content
-            // Add padding to ensure content doesn't touch edges
+          // Add padding to ensure content doesn't touch edges
             .padding(.bottom, 8)
-            // Place the size reader outside the content but inside the ScrollView
-            // This ensures we can measure the full content height
+          // Place the size reader outside the content but inside the ScrollView
+          // This ensures we can measure the full content height
             .background(sizeReaderView)
         }
         .scrollIndicators(.hidden)
@@ -49,7 +50,7 @@ extension ModalView {
       } else {
         content
           .background(sizeReaderView)
-          // Add padding to ensure content doesn't touch edges
+        // Add padding to ensure content doesn't touch edges
           .padding(.bottom, 8)
       }
     }
@@ -60,14 +61,24 @@ extension ModalView {
     .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: -2)
     .padding(.horizontal, appearance.horizontalPadding)
     .padding(.bottom, appearance.bottomPadding)
-    .offset(y: dragOffset)
+    .offset(y: dragOffset - keyboardHeight)
     .animation(dragAnimation, value: dragOffset)
+    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: keyboardHeight)
     .gesture(behavior.enableDragToDismiss ? dragGesture : nil)
     .transition(modalTransition)
     // Apply a more specific animation for height changes
     .animation(appearance.sizeChangeAnimation, value: modalHeight)
+    // Monitor keyboard notifications
+    .onAppear {
+      setupKeyboardObservers()
+    }
+    .onDisappear {
+      // Clean up observers when view disappears
+      NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+      NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
   }
-
+  
   /// Drag indicator pill at top of modal
   @ViewBuilder
   var dragIndicatorView: some View {

@@ -29,16 +29,4 @@ extension ModalView {
       }
     }
   }
-
-  /// Explicitly triggers animation for size changes
-  @MainActor func animateModalResize() {
-    // Use the configured animation for size changes
-    let animation = appearance.sizeChangeAnimation
-
-    // Force SwiftUI to update the layout with animation
-    withAnimation(animation) {
-      // We don't need to do anything specific here - the animation
-      // will happen because contentSize changed and modalHeight depends on it
-    }
-  }
 }

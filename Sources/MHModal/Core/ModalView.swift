@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 /// A modern, dynamically-sized modal view for SwiftUI that automatically adjusts to its content.
 ///
@@ -111,6 +112,17 @@ public struct ModalView<Content: View>: View {
   var growthThreshold: CGFloat {
     appearance.contentGrowthThreshold
   }
+  
+  /// Animate modal resize when content height changes
+  func animateModalResize() {
+    // Use the specific animation for content size changes
+    withAnimation(appearance.sizeChangeAnimation) {
+      // This is used to trigger the animation when resizing
+      // It relies on the .animation(appearance.sizeChangeAnimation, value: modalHeight)
+      // modifier on the view
+      _ = modalHeight
+    }
+  }
 
   // MARK: - Body
 
@@ -134,4 +146,39 @@ public struct ModalView<Content: View>: View {
 
   /// Store screen height from GeometryReader
   @State var screenHeight: CGFloat = 340
+  
+  /// Keyboard height for adjusting modal position
+  @State var keyboardHeight: CGFloat = 0
+  
+  /// Setup keyboard observers
+  func setupKeyboardObservers() {
+    // Remove any existing observers to avoid duplicates
+    NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+    NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
+    
+    // Add keyboard show observer
+    NotificationCenter.default.addObserver(
+      forName: UIResponder.keyboardWillShowNotification,
+      object: nil,
+      queue: .main
+    ) { notification in
+      if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+          keyboardHeight = keyboardFrame.height
+        }
+      }
+    }
+    
+    // Add keyboard hide observer
+    NotificationCenter.default.addObserver(
+      forName: UIResponder.keyboardWillHideNotification,
+      object: nil,
+      queue: .main
+    ) { _ in
+      withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+        keyboardHeight = 0
+      }
+    }
+  }
+  
 }
