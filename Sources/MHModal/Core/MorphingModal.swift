@@ -41,12 +41,12 @@ public struct MorphingModal<Content: View>: View {
                 // Background overlay
                 overlayView
                 
-                // Modal content - always anchored to bottom
+                // Modal content - always anchored to bottom, keyboard-aware
                 modalContentView
             }
         }
         .background(ScreenSizeDetector(coordinator: coordinator))
-        .ignoresSafeArea()
+        .ignoresSafeArea(.container, edges: .top)
     }
     
     // MARK: - Overlay
@@ -121,6 +121,7 @@ public struct MorphingModal<Content: View>: View {
                         .padding(.bottom, coordinator.bottomPadding)
                 }
                 .scrollIndicators(.hidden)
+                .scrollDismissesKeyboard(.interactively)
             } else {
                 contentWithSizeDetection
                     .padding(.bottom, coordinator.bottomPadding)
