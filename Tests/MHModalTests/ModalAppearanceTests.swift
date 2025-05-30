@@ -6,33 +6,25 @@ final class ModalAppearanceTests: XCTestCase {
     func testDefaultAppearance() {
         let appearance = ModalAppearance.default
 
-        XCTAssertEqual(appearance.background, .white)
+        XCTAssertEqual(appearance.background, Color(.systemBackground))
         XCTAssertEqual(appearance.overlayColor, Color.black.opacity(0.4))
         XCTAssertEqual(appearance.cornerRadius, 38)
         XCTAssertEqual(appearance.horizontalPadding, 20)
         XCTAssertEqual(appearance.bottomPadding, 20)
         XCTAssertTrue(appearance.showDragIndicator)
-        XCTAssertEqual(appearance.dragIndicatorColor, .gray.opacity(0.5))
+        XCTAssertEqual(appearance.dragIndicatorColor, Color(.systemGray3))
         XCTAssertEqual(appearance.maxHeightRatio, 0.85)
         XCTAssertEqual(appearance.contentShrinkThreshold, 80)
         XCTAssertEqual(appearance.contentGrowthThreshold, 20)
     }
 
-    func testLightAppearance() {
-        let appearance = ModalAppearance.light
+    func testCardAppearance() {
+        let appearance = ModalAppearance.card
 
-        XCTAssertEqual(appearance.background, .white)
-        XCTAssertEqual(appearance.overlayColor, Color.black.opacity(0.4))
-        XCTAssertEqual(appearance.cornerRadius, 38)
-    }
-
-    func testDarkAppearance() {
-        let appearance = ModalAppearance.dark
-
-        XCTAssertEqual(appearance.background, Color.gray.opacity(0.2))
-        XCTAssertEqual(appearance.overlayColor, Color.black.opacity(0.7))
-        XCTAssertEqual(appearance.cornerRadius, 38)
-        XCTAssertEqual(appearance.dragIndicatorColor, .gray.opacity(0.6))
+        XCTAssertEqual(appearance.cornerRadius, 20)
+        XCTAssertEqual(appearance.horizontalPadding, 16)
+        XCTAssertEqual(appearance.bottomPadding, 16)
+        XCTAssertTrue(appearance.showDragIndicator)
     }
 
     func testMinimalAppearance() {

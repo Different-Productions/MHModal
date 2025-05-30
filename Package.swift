@@ -6,8 +6,7 @@ import PackageDescription
 let package = Package(
   name: "MHModal",
   platforms: [
-    .iOS(.v17),  // Updated to iOS 17 for @Observable support
-    .macOS(.v14)  // Updated to macOS 14 for @Observable support
+    .iOS(.v17)  // Updated to iOS 17 for @Observable support
   ],
   products: [
     .library(

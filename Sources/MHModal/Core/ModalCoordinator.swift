@@ -130,13 +130,11 @@ public final class ModalCoordinator {
     public var modalHeight: CGFloat {
         guard screenSize.height > 0 else { return 200 }
         
-        let maxHeight = screenSize.height * appearance.maxHeightRatio
+        // Remove height limits - let modal use full screen if needed
         let minHeight: CGFloat = 100
-        
-        // Content height plus padding for drag indicator if shown
         let totalContentHeight = contentSize.height + topPadding + bottomPadding
         
-        return min(max(totalContentHeight, minHeight), maxHeight)
+        return max(totalContentHeight, minHeight)
     }
     
     /// Top padding (includes drag indicator space)
@@ -151,7 +149,8 @@ public final class ModalCoordinator {
     
     /// Whether content should scroll (exceeds available space)
     public var shouldScroll: Bool {
-        contentSize.height > (modalHeight - topPadding - bottomPadding)
+        // Always allow scrolling
+        true
     }
     
     // MARK: - Gesture Support
@@ -184,18 +183,13 @@ public final class ModalCoordinator {
 // MARK: - Convenience Extensions
 
 extension ModalCoordinator {
-    /// Creates a coordinator with light appearance
-    public static func light() -> ModalCoordinator {
-        ModalCoordinator(appearance: .light)
-    }
-    
-    /// Creates a coordinator with dark appearance
-    public static func dark() -> ModalCoordinator {
-        ModalCoordinator(appearance: .dark)
-    }
-    
     /// Creates a coordinator with minimal appearance
     public static func minimal() -> ModalCoordinator {
         ModalCoordinator(appearance: .minimal)
+    }
+    
+    /// Creates a coordinator with card appearance
+    public static func card() -> ModalCoordinator {
+        ModalCoordinator(appearance: .card)
     }
 }

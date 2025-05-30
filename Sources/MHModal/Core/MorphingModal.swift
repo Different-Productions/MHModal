@@ -121,7 +121,6 @@ public struct MorphingModal<Content: View>: View {
                         .padding(.bottom, coordinator.bottomPadding)
                 }
                 .scrollIndicators(.hidden)
-                .scrollDismissesKeyboard(.interactively)
             } else {
                 contentWithSizeDetection
                     .padding(.bottom, coordinator.bottomPadding)

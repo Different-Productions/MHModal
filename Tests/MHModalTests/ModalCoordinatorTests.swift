@@ -16,7 +16,7 @@ final class ModalCoordinatorTests: XCTestCase {
     }
     
     func testInitializationWithCustomConfiguration() {
-        let appearance = ModalAppearance.dark
+        let appearance = ModalAppearance.minimal
         let behavior = ModalBehavior.nonDismissible
         let coordinator = ModalCoordinator(appearance: appearance, behavior: behavior)
         
@@ -189,13 +189,10 @@ final class ModalCoordinatorTests: XCTestCase {
     }
     
     func testConvenienceInitializers() {
-        let lightCoordinator = ModalCoordinator.light()
-        XCTAssertEqual(lightCoordinator.appearance, .light)
-        
-        let darkCoordinator = ModalCoordinator.dark()
-        XCTAssertEqual(darkCoordinator.appearance, .dark)
-        
         let minimalCoordinator = ModalCoordinator.minimal()
         XCTAssertEqual(minimalCoordinator.appearance, .minimal)
+        
+        let cardCoordinator = ModalCoordinator.card()
+        XCTAssertEqual(cardCoordinator.appearance, .card)
     }
 }

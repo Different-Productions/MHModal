@@ -58,13 +58,13 @@ public struct ModalAppearance: Equatable, Sendable {
   ///   - contentShrinkThreshold: Threshold for allowing content to shrink (in points)
   ///   - contentGrowthThreshold: Threshold for detecting content growth in scroll views (in points)
   public init(
-    background: Color = .white,
+    background: Color = Color(.systemBackground),
     overlayColor: Color = Color.black.opacity(0.4),
     cornerRadius: CGFloat = 38,
     horizontalPadding: CGFloat = 20,
     bottomPadding: CGFloat = 20,
     showDragIndicator: Bool = true,
-    dragIndicatorColor: Color = .gray.opacity(0.5),
+    dragIndicatorColor: Color = Color(.systemGray3),
     maxHeightRatio: CGFloat = 0.85,
     sizeChangeAnimation: Animation = .spring(response: 0.35, dampingFraction: 0.7),
     contentShrinkThreshold: CGFloat = 80,
@@ -83,28 +83,20 @@ public struct ModalAppearance: Equatable, Sendable {
     self.contentGrowthThreshold = contentGrowthThreshold
   }
 
-  /// Default appearance settings
+  /// Default appearance settings - adapts to system light/dark mode
   public static let `default` = ModalAppearance()
 
-  /// Light appearance theme
-  public static let light = ModalAppearance(
-    background: .white,
-    overlayColor: Color.black.opacity(0.4),
-    cornerRadius: 38
-  )
-
-  /// Dark appearance theme
-  public static let dark = ModalAppearance(
-    background: Color.gray.opacity(0.2),
-    overlayColor: Color.black.opacity(0.7),
-    cornerRadius: 38,
-    dragIndicatorColor: .gray.opacity(0.6)
-  )
-
-  /// Minimal appearance with no drag indicator
+  /// Minimal appearance with no drag indicator - adapts to system light/dark mode
   public static let minimal = ModalAppearance(
     cornerRadius: 24,
     showDragIndicator: false
+  )
+  
+  /// Card-style appearance with more rounded corners
+  public static let card = ModalAppearance(
+    cornerRadius: 20,
+    horizontalPadding: 16,
+    bottomPadding: 16
   )
 }
 

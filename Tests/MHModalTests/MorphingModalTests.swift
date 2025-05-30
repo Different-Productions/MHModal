@@ -16,7 +16,7 @@ final class MorphingModalTests: XCTestCase {
     }
     
     func testMorphingModalWithCustomCoordinator() {
-        let appearance = ModalAppearance.dark
+        let appearance = ModalAppearance.minimal
         let behavior = ModalBehavior.nonDismissible
         let coordinator = ModalCoordinator(appearance: appearance, behavior: behavior)
         

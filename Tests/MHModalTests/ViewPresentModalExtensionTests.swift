@@ -20,13 +20,13 @@ final class ViewPresentModalExtensionTests: XCTestCase {
     func testPresentModalWithAppearance() {
         let testView = Text("Base View")
         let binding = Binding<Bool>(get: { false }, set: { _ in })
-        let appearance = ModalAppearance.dark
+        let appearance = ModalAppearance.minimal
         
         let modalView = testView.presentModal(
             isPresented: binding,
             appearance: appearance
         ) {
-            Text("Dark Modal Content")
+            Text("Minimal Modal Content")
         }
         
         XCTAssertNotNil(modalView)
@@ -67,23 +67,12 @@ final class ViewPresentModalExtensionTests: XCTestCase {
         XCTAssertNotNil(modalView)
     }
     
-    func testPresentLightModal() {
+    func testPresentCardModal() {
         let testView = Text("Base View")
         let binding = Binding<Bool>(get: { false }, set: { _ in })
         
-        let modalView = testView.presentLightModal(isPresented: binding) {
-            Text("Light Modal Content")
-        }
-        
-        XCTAssertNotNil(modalView)
-    }
-    
-    func testPresentDarkModal() {
-        let testView = Text("Base View")
-        let binding = Binding<Bool>(get: { false }, set: { _ in })
-        
-        let modalView = testView.presentDarkModal(isPresented: binding) {
-            Text("Dark Modal Content")
+        let modalView = testView.presentCardModal(isPresented: binding) {
+            Text("Card Modal Content")
         }
         
         XCTAssertNotNil(modalView)

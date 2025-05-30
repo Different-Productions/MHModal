@@ -159,30 +159,6 @@ private struct PresentModalModifier<ModalContent: View>: ViewModifier {
 
 extension View {
     
-    /// Presents a modal with light appearance theme
-    public func presentLightModal<Content: View>(
-        isPresented: Binding<Bool>,
-        @ViewBuilder content: @escaping () -> Content
-    ) -> some View {
-        presentModal(
-            isPresented: isPresented,
-            appearance: .light,
-            content: content
-        )
-    }
-    
-    /// Presents a modal with dark appearance theme
-    public func presentDarkModal<Content: View>(
-        isPresented: Binding<Bool>,
-        @ViewBuilder content: @escaping () -> Content
-    ) -> some View {
-        presentModal(
-            isPresented: isPresented,
-            appearance: .dark,
-            content: content
-        )
-    }
-    
     /// Presents a modal with minimal appearance (no drag indicator)
     public func presentMinimalModal<Content: View>(
         isPresented: Binding<Bool>,
@@ -191,6 +167,18 @@ extension View {
         presentModal(
             isPresented: isPresented,
             appearance: .minimal,
+            content: content
+        )
+    }
+    
+    /// Presents a modal with card appearance (more rounded, tighter spacing)
+    public func presentCardModal<Content: View>(
+        isPresented: Binding<Bool>,
+        @ViewBuilder content: @escaping () -> Content
+    ) -> some View {
+        presentModal(
+            isPresented: isPresented,
+            appearance: .card,
             content: content
         )
     }
