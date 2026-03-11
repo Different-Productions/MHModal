@@ -12,6 +12,7 @@ import SwiftUI
 /// `ModalCoordinator` is the single source of truth for all modal state and behavior.
 /// It automatically handles content size changes, animations, and user interactions
 /// with a focus on smooth morphing transitions.
+@MainActor
 @Observable
 public final class ModalCoordinator {
     
@@ -132,7 +133,8 @@ public final class ModalCoordinator {
         }
         
         // Reset morphing flag after animation
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(500))
             self.isMorphing = false
         }
     }

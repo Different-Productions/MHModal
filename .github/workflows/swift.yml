@@ -12,11 +12,11 @@ on:
 jobs:
   build:
 
-    runs-on: macos-latest
+    runs-on: macos-26
 
     steps:
     - uses: actions/checkout@v4
     - name: Build
-      run: swift build -v
+      run: xcodebuild build -scheme MHModal -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.0'
     - name: Run tests
-      run: swift test -v
+      run: xcodebuild test -scheme MHModal -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.0'
