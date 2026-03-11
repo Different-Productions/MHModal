@@ -37,29 +37,49 @@ public final class ModalCoordinator {
     /// Previous content size for smooth transitions
     private var previousContentSize: CGSize = .zero
     
+    // MARK: - Keyboard
+
+    /// Keyboard observer for tracking keyboard visibility
+    let keyboardObserver = KeyboardObserver()
+
+    /// Current keyboard height (0 when hidden)
+    public var keyboardHeight: CGFloat {
+        keyboardObserver.keyboardHeight
+    }
+
     // MARK: - Configuration
-    
+
     /// Visual appearance configuration
     public let appearance: ModalAppearance
-    
+
     /// Interaction behavior configuration
     public let behavior: ModalBehavior
     
     // MARK: - Animation Configuration
     
-    /// Animation used for morphing transitions
+    /// Animation used for morphing transitions — slight overshoot adds life
     public var morphAnimation: Animation {
-        .spring(response: 0.4, dampingFraction: 0.8)
+        .spring(response: 0.45, dampingFraction: 0.82, blendDuration: 0.1)
     }
-    
-    /// Animation used for drag gestures
+
+    /// Animation used for drag gestures — faster tracking, higher damping follows finger precisely
     public var dragAnimation: Animation {
-        .interactiveSpring(response: 0.3, dampingFraction: 0.7)
+        .interactiveSpring(response: 0.25, dampingFraction: 0.86)
     }
-    
-    /// Animation used for present/dismiss
+
+    /// Animation used for presentation — subtle bounce at end feels welcoming
     public var presentAnimation: Animation {
-        .spring(response: 0.5, dampingFraction: 0.8)
+        .spring(response: 0.48, dampingFraction: 0.78)
+    }
+
+    /// Animation used for dismissal — snappy, no lingering, decisive exit
+    public var dismissAnimation: Animation {
+        .spring(response: 0.35, dampingFraction: 0.88)
+    }
+
+    /// Animation used for keyboard avoidance — tracks iOS keyboard curve closely
+    public var keyboardAnimation: Animation {
+        .spring(response: 0.35, dampingFraction: 0.88)
     }
     
     // MARK: - Initialization
@@ -87,7 +107,7 @@ public final class ModalCoordinator {
     
     /// Dismisses the modal with animation
     public func dismiss() {
-        withAnimation(presentAnimation) {
+        withAnimation(dismissAnimation) {
             isPresented = false
             dragOffset = 0
         }
@@ -129,12 +149,20 @@ public final class ModalCoordinator {
     /// Calculated modal height based on content and constraints
     public var modalHeight: CGFloat {
         guard screenSize.height > 0 else { return 200 }
-        
-        // Remove height limits - let modal use full screen if needed
+
         let minHeight: CGFloat = 100
+        let maxHeight = screenSize.height * appearance.maxHeightRatio
         let totalContentHeight = contentSize.height + topPadding + bottomPadding
-        
-        return max(totalContentHeight, minHeight)
+
+        // When keyboard is visible, cap so modal fits between keyboard and top of screen.
+        // .ignoresSafeArea(.keyboard) keeps screenSize stable so this math is correct.
+        if keyboardHeight > 0 {
+            let topMargin: CGFloat = 44
+            let availableHeight = screenSize.height - keyboardHeight - appearance.bottomPadding - topMargin
+            return max(min(totalContentHeight, min(availableHeight, maxHeight)), minHeight)
+        }
+
+        return max(min(totalContentHeight, maxHeight), minHeight)
     }
     
     /// Top padding (includes drag indicator space)
@@ -147,10 +175,13 @@ public final class ModalCoordinator {
         16
     }
     
-    /// Whether content should scroll (exceeds available space)
-    public var shouldScroll: Bool {
-        // Always allow scrolling
-        true
+    /// Whether content exceeds the maximum modal height and needs SDK-level scrolling.
+    /// When false, the SDK's ScrollView is disabled so user-provided scrollable
+    /// content (List, ScrollView, etc.) can handle its own scrolling without nesting.
+    public var contentNeedsScroll: Bool {
+        guard screenSize.height > 0 else { return false }
+        let maxHeight = screenSize.height * appearance.maxHeightRatio
+        return contentSize.height + topPadding + bottomPadding > maxHeight
     }
     
     // MARK: - Gesture Support

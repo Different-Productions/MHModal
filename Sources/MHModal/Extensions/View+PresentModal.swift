@@ -155,10 +155,59 @@ private struct PresentModalModifier<ModalContent: View>: ViewModifier {
     }
 }
 
+// MARK: - Phase-Based API
+
+extension View {
+
+    /// Presents a morphing modal with automatic content transitions between phases.
+    ///
+    /// When the `phase` value changes, the old content cross-fades out and new content
+    /// fades in, while the modal height morphs smoothly. Perfect for multi-step flows.
+    ///
+    /// - Parameters:
+    ///   - isPresented: Binding that controls modal presentation
+    ///   - phase: The current phase value. Changing this triggers a content transition.
+    ///   - appearance: Visual appearance configuration
+    ///   - behavior: Interaction behavior configuration
+    ///   - transition: The transition applied when the phase changes. Defaults to `.modalCrossFade`.
+    ///   - content: A view builder that produces content for the given phase.
+    ///
+    /// Example:
+    /// ```swift
+    /// .presentModal(isPresented: $show, phase: currentStep) { step in
+    ///     switch step {
+    ///     case 0: WelcomeView()
+    ///     case 1: DetailsView()
+    ///     default: DoneView()
+    ///     }
+    /// }
+    /// ```
+    public func presentModal<Phase: Hashable, ModalContent: View>(
+        isPresented: Binding<Bool>,
+        phase: Phase,
+        appearance: ModalAppearance = .default,
+        behavior: ModalBehavior = .default,
+        transition: AnyTransition = .modalCrossFade,
+        @ViewBuilder content: @escaping (Phase) -> ModalContent
+    ) -> some View {
+        presentModal(
+            isPresented: isPresented,
+            appearance: appearance,
+            behavior: behavior
+        ) {
+            ModalContentTransition(
+                phase: phase,
+                transition: transition,
+                content: content
+            )
+        }
+    }
+}
+
 // MARK: - Convenience Modifiers
 
 extension View {
-    
+
     /// Presents a modal with minimal appearance (no drag indicator)
     public func presentMinimalModal<Content: View>(
         isPresented: Binding<Bool>,
