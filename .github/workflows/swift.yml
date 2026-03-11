@@ -17,6 +17,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build
-      run: xcodebuild build -scheme MHModal -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.0'
+      run: xcodebuild build -scheme MHModal -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
     - name: Run tests
-      run: xcodebuild test -scheme MHModal -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.0'
+      run: xcodebuild test -scheme MHModal -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
