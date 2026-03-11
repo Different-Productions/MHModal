@@ -127,7 +127,7 @@ final class ModalCoordinatorTests: XCTestCase {
         let maxHeight = coordinator.screenSize.height * coordinator.appearance.maxHeightRatio
         coordinator.contentSize = CGSize(width: 300, height: maxHeight) // Content that fills max height
         
-        XCTAssertTrue(coordinator.shouldScroll)
+        XCTAssertTrue(coordinator.contentNeedsScroll)
     }
     
     func testShouldNotScroll() {
@@ -135,7 +135,7 @@ final class ModalCoordinatorTests: XCTestCase {
         coordinator.screenSize = CGSize(width: 375, height: 812)
         coordinator.contentSize = CGSize(width: 300, height: 100) // Small content
         
-        XCTAssertFalse(coordinator.shouldScroll)
+        XCTAssertFalse(coordinator.contentNeedsScroll)
     }
     
     func testUpdateDragOffset() {
