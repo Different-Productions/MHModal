@@ -1,98 +1,128 @@
 # MHModal
 
-Elegant, adaptive modals for SwiftUI.
+A morphing modal for iOS that automatically resizes to fit its content with smooth spring animations.
 
-[![Swift](https://img.shields.io/badge/Swift-5.7-orange.svg)](https://swift.org)
-[![iOS](https://img.shields.io/badge/iOS-15.0+-blue.svg)](https://developer.apple.com/ios/)
-[![macOS](https://img.shields.io/badge/macOS-13.0+-blue.svg)](https://developer.apple.com/macos/)
-[![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen.svg)](https://github.com/michaelharrigan/MHModal/actions)
+[![Swift](https://img.shields.io/badge/Swift-6.1-orange.svg)](https://swift.org)
+[![iOS](https://img.shields.io/badge/iOS-26+-blue.svg)](https://developer.apple.com/ios/)
+[![Tests](https://github.com/Different-Productions/MHModal/actions/workflows/swift.yml/badge.svg)](https://github.com/Different-Productions/MHModal/actions/workflows/swift.yml)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-
-## Overview
-
-MHModal provides floating modals that automatically adapt to content size with natural gesture controls. Built for iOS and macOS apps with a focus on simplicity and flexibility.
 
 ## Features
 
-- Content-aware sizing that adapts dynamically 
-- Natural gesture-based interactions
-- Customizable appearance with built-in themes
-- Flexible behavior configuration
-- Simple, intuitive API
+- **Auto-morphing** — modal height animates to match content as it changes
+- **Drag to dismiss** — natural gesture with scale, shadow, and corner radius feedback
+- **Keyboard aware** — modal repositions and resizes when the keyboard appears
+- **Phase-based transitions** — cross-fade between content phases for multi-step flows
+- **Configurable** — appearance, behavior, and animation are all customizable
 
 ## Installation
 
+Add MHModal as a Swift Package dependency:
+
 ```swift
-.package(url: "https://github.com/michaelharrigan/MHModal.git", branch: "master")
+.package(url: "https://github.com/Different-Productions/MHModal.git", branch: "master")
 ```
 
-## Basic Usage
+## Usage
+
+### Basic
 
 ```swift
-import SwiftUI
 import MHModal
 
-struct ContentView: View {
+struct MyView: View {
     @State private var showModal = false
-    
+
     var body: some View {
-        Button("Show Modal") {
-            showModal = true
-        }
-        .mhModal(isPresented: $showModal) {
-            Text("Hello World!")
-                .padding()
+        Button("Show") { showModal = true }
+            .presentModal(isPresented: $showModal) {
+                Text("Hello from MHModal")
+                    .padding()
+            }
+    }
+}
+```
+
+### Custom Appearance
+
+```swift
+.presentModal(
+    isPresented: $show,
+    appearance: ModalAppearance(
+        cornerRadius: 24,
+        horizontalPadding: 16,
+        maxHeightRatio: 0.7
+    )
+) {
+    MyContent()
+}
+```
+
+### Phase-Based Flows
+
+```swift
+.presentModal(isPresented: $show, phase: currentStep) { step in
+    switch step {
+    case 0: WelcomeView()
+    case 1: DetailsView()
+    default: DoneView()
+    }
+}
+```
+
+The modal cross-fades between phases and morphs to the new content height.
+
+### Convenience Styles
+
+```swift
+// No drag indicator
+.presentMinimalModal(isPresented: $show) { ... }
+
+// Card-style with tighter spacing
+.presentCardModal(isPresented: $show) { ... }
+```
+
+### Lists and Scrollable Content
+
+Use `VStack` + `ForEach` instead of `List` inside the modal. The SDK provides its own scroll handling — nesting a `List` (which is itself a scroll view) causes conflicts.
+
+```swift
+.presentModal(isPresented: $show) {
+    VStack(spacing: 12) {
+        ForEach(items) { item in
+            ItemRow(item: item)
         }
     }
 }
 ```
 
-## Customization
+## Configuration
 
-### Appearance
+### ModalAppearance
 
-```swift
-// Use built-in themes
-.mhModal(isPresented: $showModal, appearance: .dark)
+| Property | Default | Description |
+|----------|---------|-------------|
+| `background` | `.systemBackground` | Modal background color |
+| `overlayColor` | `.black.opacity(0.4)` | Dimmed overlay behind modal |
+| `cornerRadius` | `38` | Corner radius |
+| `horizontalPadding` | `20` | Side padding |
+| `bottomPadding` | `0` | Bottom padding |
+| `showDragIndicator` | `true` | Show the grab handle |
+| `maxHeightRatio` | `0.85` | Max height as fraction of screen |
 
-// Or customize each aspect
-.mhModal(
-    isPresented: $showModal,
-    appearance: ModalAppearance(
-        background: .white,
-        cornerRadius: 24,
-        showDragIndicator: true
-    )
-)
-```
+### ModalBehavior
 
-### Behavior
-
-```swift
-// Non-dismissible modal
-.mhModal(
-    isPresented: $showModal,
-    behavior: .nonDismissible
-)
-
-// Custom dismissal options
-.mhModal(
-    isPresented: $showModal,
-    behavior: ModalBehavior(
-        enableDragToDismiss: true,
-        tapToDismiss: false
-    )
-)
-```
+| Property | Default | Description |
+|----------|---------|-------------|
+| `enableDragToDismiss` | `true` | Allow drag-to-dismiss gesture |
+| `tapToDismiss` | `true` | Dismiss on overlay tap |
+| `dismissVelocityThreshold` | `170` | Velocity needed to dismiss (px/s) |
+| `dismissDistanceThreshold` | `100` | Distance needed to dismiss (px) |
 
 ## Requirements
 
-- iOS 15.0+ / macOS 14.0+
-- Swift 5.7+
-
-## Documentation
-
-For detailed API documentation, build the MHModal target in Xcode and select Product > Build Documentation.
+- iOS 26+
+- Swift 6.1+
 
 ## License
 
