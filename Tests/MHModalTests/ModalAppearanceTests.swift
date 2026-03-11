@@ -10,7 +10,7 @@ final class ModalAppearanceTests: XCTestCase {
         XCTAssertEqual(appearance.overlayColor, Color.black.opacity(0.4))
         XCTAssertEqual(appearance.cornerRadius, 38)
         XCTAssertEqual(appearance.horizontalPadding, 20)
-        XCTAssertEqual(appearance.bottomPadding, 20)
+        XCTAssertEqual(appearance.bottomPadding, 0)
         XCTAssertTrue(appearance.showDragIndicator)
         XCTAssertEqual(appearance.dragIndicatorColor, Color(.systemGray3))
         XCTAssertEqual(appearance.maxHeightRatio, 0.85)
