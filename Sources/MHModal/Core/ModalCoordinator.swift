@@ -174,7 +174,7 @@ public final class ModalCoordinator {
     
     /// Bottom padding for content
     public var bottomPadding: CGFloat {
-        16
+        0
     }
     
     /// Whether content exceeds the maximum modal height and needs SDK-level scrolling.
