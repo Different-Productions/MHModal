@@ -25,7 +25,7 @@ extension UIViewController {
   /// ```
   @MainActor
   public func presentMHModal<Content: View>(
-    appearance: ModalAppearance = .sheet,
+    appearance: ModalAppearance = .default,
     @ViewBuilder content: @escaping () -> Content
   ) {
     let host = MHModalHostView(appearance: appearance, content: content)
