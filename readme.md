@@ -85,6 +85,24 @@ The modal cross-fades between phases and morphs to the new content height.
 .presentCardModal(isPresented: $show) { ... }
 ```
 
+### UIKit
+
+Present from any `UIViewController` — handles hosting controller lifecycle and dismiss wiring automatically.
+
+```swift
+viewController.presentMHModal { isPresented in
+    MyModalContent(isPresented: isPresented)
+}
+```
+
+Defaults to `.sheet` appearance (edge-to-edge). Pass a custom appearance if needed:
+
+```swift
+viewController.presentMHModal(appearance: .default) { _ in
+    Text("Floating card style")
+}
+```
+
 ### Lists and Scrollable Content
 
 Use `VStack` + `ForEach` instead of `List` inside the modal. The SDK provides its own scroll handling — nesting a `List` (which is itself a scroll view) causes conflicts.
