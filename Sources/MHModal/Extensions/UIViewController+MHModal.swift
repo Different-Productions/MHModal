@@ -2,9 +2,8 @@
 //  UIViewController+MHModal.swift
 //  MHModal
 //
-//  UIKit bridge for presenting MHModal content from any UIViewController.
-//  Uses sheetPresentationController with self-sizing detents — same approach
-//  as BoosterKit. System handles corner radius, dimming, and presentation.
+//  UIKit bridge — presents SwiftUI content using MHModal's native
+//  .presentModal() inside a transparent UIHostingController.
 //
 
 #if canImport(UIKit)
@@ -13,10 +12,10 @@ import UIKit
 
 extension UIViewController {
 
-  /// Presents SwiftUI content as a self-sizing sheet from any UIViewController.
+  /// Presents SwiftUI content inside MHModal from any UIViewController.
   ///
-  /// Uses `sheetPresentationController` with a self-sizing detent so the sheet
-  /// height matches the content. System handles corner radius and dimming.
+  /// Uses MHModal's native `.presentModal()` for auto-sizing, scroll handling,
+  /// and morphing. Just provide the content.
   ///
   /// ```swift
   /// presentMHModal {
@@ -26,27 +25,40 @@ extension UIViewController {
   /// ```
   @MainActor
   public func presentMHModal<Content: View>(
+    appearance: ModalAppearance = .sheet,
     @ViewBuilder content: @escaping () -> Content
   ) {
-    let hostingController = UIHostingController(rootView: content())
-    hostingController.view.backgroundColor = .systemBackground
+    let host = MHModalHostView(appearance: appearance, content: content)
+    let hostingController = UIHostingController(rootView: host)
+    hostingController.view.backgroundColor = .clear
+    hostingController.modalPresentationStyle = .overFullScreen
+    hostingController.modalTransitionStyle = .crossDissolve
 
-    if let sheet = hostingController.sheetPresentationController {
-      let selfSizingDetent = UISheetPresentationController.Detent.custom { context in
-        hostingController.view.systemLayoutSizeFitting(
-          CGSize(
-            width: context.maximumDetentValue,
-            height: UIView.layoutFittingCompressedSize.height
-          ),
-          withHorizontalFittingPriority: .required,
-          verticalFittingPriority: .fittingSizeLevel
-        ).height
+    present(hostingController, animated: false)
+  }
+}
+
+private struct MHModalHostView<Content: View>: View {
+
+  let appearance: ModalAppearance
+  @ViewBuilder let content: () -> Content
+
+  @State private var isPresented = false
+  @Environment(\.dismiss) private var dismiss
+
+  var body: some View {
+    Color.clear
+      .presentModal(isPresented: $isPresented, appearance: appearance) {
+        content()
       }
-      sheet.detents = [selfSizingDetent]
-      sheet.prefersGrabberVisible = true
-    }
-
-    present(hostingController, animated: true)
+      .onAppear {
+        isPresented = true
+      }
+      .onChange(of: isPresented) { _, newValue in
+        if !newValue {
+          dismiss()
+        }
+      }
   }
 }
 #endif
