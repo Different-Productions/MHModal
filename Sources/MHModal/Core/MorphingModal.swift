@@ -45,7 +45,6 @@ public struct MorphingModal<Content: View>: View {
                 modalContentView
             }
         }
-        .ignoresSafeArea(.container, edges: .bottom)
         .background(ScreenSizeDetector(coordinator: coordinator))
         #if canImport(UIKit)
         .background(KeyboardOverlapReader(observer: coordinator.keyboardObserver))
@@ -170,7 +169,6 @@ public struct MorphingModal<Content: View>: View {
         ScrollView {
             contentWithSizeDetection
                 .padding(.bottom, coordinator.bottomPadding + coordinator.keyboardHeight)
-                .safeAreaPadding(.bottom)
         }
         .scrollBounceBehavior(.basedOnSize)
         .scrollIndicators(.hidden)
