@@ -61,7 +61,7 @@ public struct ModalAppearance: Equatable, Sendable {
     background: Color = Color(.systemBackground),
     overlayColor: Color = Color.black.opacity(0.4),
     cornerRadius: CGFloat = 38,
-    horizontalPadding: CGFloat = 20,
+    horizontalPadding: CGFloat = 8,
     bottomPadding: CGFloat = 0,
     showDragIndicator: Bool = true,
     dragIndicatorColor: Color = Color(.systemGray3),
