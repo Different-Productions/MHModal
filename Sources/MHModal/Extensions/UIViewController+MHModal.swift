@@ -2,8 +2,8 @@
 //  UIViewController+MHModal.swift
 //  MHModal
 //
-//  UIKit bridge — presents SwiftUI content using MHModal's native
-//  .presentModal() inside a transparent UIHostingController.
+//  UIKit bridge — presents SwiftUI content as a native iOS sheet
+//  with self-sizing detents.
 //
 
 #if canImport(UIKit)
@@ -12,10 +12,10 @@ import UIKit
 
 extension UIViewController {
 
-  /// Presents SwiftUI content inside MHModal from any UIViewController.
+  /// Presents SwiftUI content as a native self-sizing sheet.
   ///
-  /// Uses MHModal's native `.presentModal()` for auto-sizing, scroll handling,
-  /// and morphing. Just provide the content.
+  /// Uses `sheetPresentationController` with a self-sizing detent and `.large()`.
+  /// System handles corner radius, dimming, and presentation.
   ///
   /// ```swift
   /// presentMHModal {
@@ -25,40 +25,21 @@ extension UIViewController {
   /// ```
   @MainActor
   public func presentMHModal<Content: View>(
-    appearance: ModalAppearance = .default,
     @ViewBuilder content: @escaping () -> Content
   ) {
-    let host = MHModalHostView(appearance: appearance, content: content)
-    let hostingController = UIHostingController(rootView: host)
-    hostingController.view.backgroundColor = .clear
-    hostingController.modalPresentationStyle = .overFullScreen
-    hostingController.modalTransitionStyle = .crossDissolve
+    let hostingController = UIHostingController(rootView: content())
+    hostingController.view.backgroundColor = .systemBackground
+    hostingController.sizingOptions = .intrinsicContentSize
 
-    present(hostingController, animated: false)
-  }
-}
-
-private struct MHModalHostView<Content: View>: View {
-
-  let appearance: ModalAppearance
-  @ViewBuilder let content: () -> Content
-
-  @State private var isPresented = false
-  @Environment(\.dismiss) private var dismiss
-
-  var body: some View {
-    Color.clear
-      .presentModal(isPresented: $isPresented, appearance: appearance) {
-        content()
+    if let sheet = hostingController.sheetPresentationController {
+      let selfSizingDetent = UISheetPresentationController.Detent.custom { [weak hostingController] _ in
+        hostingController?.view.intrinsicContentSize.height
       }
-      .onAppear {
-        isPresented = true
-      }
-      .onChange(of: isPresented) { _, newValue in
-        if !newValue {
-          dismiss()
-        }
-      }
+      sheet.detents = [selfSizingDetent, .large()]
+      sheet.prefersGrabberVisible = true
+    }
+
+    present(hostingController, animated: true)
   }
 }
 #endif
