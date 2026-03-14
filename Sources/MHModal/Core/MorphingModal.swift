@@ -45,6 +45,7 @@ public struct MorphingModal<Content: View>: View {
                 modalContentView
             }
         }
+        .ignoresSafeArea(.container, edges: .bottom)
         .background(ScreenSizeDetector(coordinator: coordinator))
         #if canImport(UIKit)
         .background(KeyboardOverlapReader(observer: coordinator.keyboardObserver))
