@@ -170,6 +170,7 @@ public struct MorphingModal<Content: View>: View {
         ScrollView {
             contentWithSizeDetection
                 .padding(.bottom, coordinator.bottomPadding + coordinator.keyboardHeight)
+                .safeAreaPadding(.bottom)
         }
         .scrollBounceBehavior(.basedOnSize)
         .scrollIndicators(.hidden)
