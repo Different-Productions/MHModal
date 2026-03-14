@@ -102,7 +102,7 @@ public struct ModalAppearance: Equatable, Sendable {
   /// Sheet-style appearance that matches native iOS sheet presentation.
   /// Edge-to-edge with system-matching corner radius and no side padding.
   public static let sheet = ModalAppearance(
-    cornerRadius: 10,
+    cornerRadius: 20,
     horizontalPadding: 0
   )
 }
