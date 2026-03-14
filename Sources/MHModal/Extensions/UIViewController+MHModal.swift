@@ -3,8 +3,6 @@
 //  MHModal
 //
 //  UIKit bridge for presenting MHModal content from any UIViewController.
-//  Uses sheetPresentationController with self-sizing detents — same approach
-//  as BoosterKit. System handles corner radius, dimming, and presentation.
 //
 
 #if canImport(UIKit)
@@ -13,10 +11,10 @@ import UIKit
 
 extension UIViewController {
 
-  /// Presents SwiftUI content as a self-sizing sheet from any UIViewController.
+  /// Presents SwiftUI content as a sheet from any UIViewController.
   ///
-  /// Uses `sheetPresentationController` with a self-sizing detent so the sheet
-  /// height matches the content. System handles corner radius and dimming.
+  /// Just provide the content — MHModal handles sizing, corner radius,
+  /// dimming, and presentation automatically.
   ///
   /// ```swift
   /// presentMHModal {
@@ -30,19 +28,13 @@ extension UIViewController {
   ) {
     let hostingController = UIHostingController(rootView: content())
     hostingController.view.backgroundColor = .systemBackground
+    hostingController.sizingOptions = .intrinsicContentSize
 
     if let sheet = hostingController.sheetPresentationController {
-      let selfSizingDetent = UISheetPresentationController.Detent.custom { context in
-        hostingController.view.systemLayoutSizeFitting(
-          CGSize(
-            width: context.maximumDetentValue,
-            height: UIView.layoutFittingCompressedSize.height
-          ),
-          withHorizontalFittingPriority: .required,
-          verticalFittingPriority: .fittingSizeLevel
-        ).height
+      let selfSizingDetent = UISheetPresentationController.Detent.custom { [weak hostingController] _ in
+        hostingController?.view.intrinsicContentSize.height
       }
-      sheet.detents = [selfSizingDetent]
+      sheet.detents = [selfSizingDetent, .large()]
       sheet.prefersGrabberVisible = true
     }
 
