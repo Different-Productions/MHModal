@@ -231,4 +231,16 @@ extension View {
             content: content
         )
     }
+
+    /// Presents a modal with sheet appearance (edge-to-edge, matching native iOS sheets)
+    public func presentSheetModal<Content: View>(
+        isPresented: Binding<Bool>,
+        @ViewBuilder content: @escaping () -> Content
+    ) -> some View {
+        presentModal(
+            isPresented: isPresented,
+            appearance: .sheet,
+            content: content
+        )
+    }
 }

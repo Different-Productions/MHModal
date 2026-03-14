@@ -75,6 +75,9 @@ The modal cross-fades between phases and morphs to the new content height.
 ### Convenience Styles
 
 ```swift
+// Sheet-style (edge-to-edge, matches native iOS sheets)
+.presentSheetModal(isPresented: $show) { ... }
+
 // No drag indicator
 .presentMinimalModal(isPresented: $show) { ... }
 
