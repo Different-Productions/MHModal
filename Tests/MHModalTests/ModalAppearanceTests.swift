@@ -9,13 +9,11 @@ final class ModalAppearanceTests: XCTestCase {
         XCTAssertEqual(appearance.background, Color(.systemBackground))
         XCTAssertEqual(appearance.overlayColor, Color.black.opacity(0.4))
         XCTAssertEqual(appearance.cornerRadius, 38)
-        XCTAssertEqual(appearance.horizontalPadding, 20)
+        XCTAssertEqual(appearance.horizontalPadding, 8)
         XCTAssertEqual(appearance.bottomPadding, 0)
         XCTAssertTrue(appearance.showDragIndicator)
         XCTAssertEqual(appearance.dragIndicatorColor, Color(.systemGray3))
         XCTAssertEqual(appearance.maxHeightRatio, 0.85)
-        XCTAssertEqual(appearance.contentShrinkThreshold, 80)
-        XCTAssertEqual(appearance.contentGrowthThreshold, 20)
     }
 
     func testCardAppearance() {
@@ -43,9 +41,7 @@ final class ModalAppearanceTests: XCTestCase {
             bottomPadding: 25,
             showDragIndicator: false,
             dragIndicatorColor: .green,
-            maxHeightRatio: 0.75,
-            contentShrinkThreshold: 100,
-            contentGrowthThreshold: 10
+            maxHeightRatio: 0.75
         )
 
         XCTAssertEqual(customAppearance.background, .blue)
@@ -56,8 +52,6 @@ final class ModalAppearanceTests: XCTestCase {
         XCTAssertFalse(customAppearance.showDragIndicator)
         XCTAssertEqual(customAppearance.dragIndicatorColor, .green)
         XCTAssertEqual(customAppearance.maxHeightRatio, 0.75)
-        XCTAssertEqual(customAppearance.contentShrinkThreshold, 100)
-        XCTAssertEqual(customAppearance.contentGrowthThreshold, 10)
     }
 
     func testMaxHeightRatioConstraints() {

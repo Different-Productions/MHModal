@@ -1,5 +1,5 @@
 //
-//  ModalConfiguration.swift
+//  ModalAppearance.swift
 //  MHModal
 //
 //  Created by Michael Harrigan on 3/8/25.
@@ -33,17 +33,6 @@ public struct ModalAppearance: Equatable, Sendable {
   /// Maximum height (as percentage of screen height, 0.0-1.0)
   public var maxHeightRatio: CGFloat
 
-  /// Animation used for size changes
-  public var sizeChangeAnimation: Animation
-
-  /// Threshold for allowing content to shrink (in points)
-  /// A higher value means the modal will only shrink when content is reduced significantly
-  public var contentShrinkThreshold: CGFloat
-
-  /// Threshold for detecting content growth in scroll views (in points)
-  /// A lower value means the modal will be more responsive to small content changes
-  public var contentGrowthThreshold: CGFloat
-
   /// Creates a custom appearance configuration
   /// - Parameters:
   ///   - background: Background color of the modal
@@ -54,9 +43,6 @@ public struct ModalAppearance: Equatable, Sendable {
   ///   - showDragIndicator: Whether to show the drag indicator
   ///   - dragIndicatorColor: Color of the drag indicator
   ///   - maxHeightRatio: Maximum height as percentage of screen (0.0-1.0)
-  ///   - sizeChangeAnimation: Animation used for size changes
-  ///   - contentShrinkThreshold: Threshold for allowing content to shrink (in points)
-  ///   - contentGrowthThreshold: Threshold for detecting content growth in scroll views (in points)
   public init(
     background: Color = Color(.systemBackground),
     overlayColor: Color = Color.black.opacity(0.4),
@@ -65,10 +51,7 @@ public struct ModalAppearance: Equatable, Sendable {
     bottomPadding: CGFloat = 0,
     showDragIndicator: Bool = true,
     dragIndicatorColor: Color = Color(.systemGray3),
-    maxHeightRatio: CGFloat = 0.85,
-    sizeChangeAnimation: Animation = .spring(response: 0.35, dampingFraction: 0.7),
-    contentShrinkThreshold: CGFloat = 80,
-    contentGrowthThreshold: CGFloat = 20
+    maxHeightRatio: CGFloat = 0.85
   ) {
     self.background = background
     self.overlayColor = overlayColor
@@ -78,9 +61,6 @@ public struct ModalAppearance: Equatable, Sendable {
     self.showDragIndicator = showDragIndicator
     self.dragIndicatorColor = dragIndicatorColor
     self.maxHeightRatio = min(max(maxHeightRatio, 0), 1)
-    self.sizeChangeAnimation = sizeChangeAnimation
-    self.contentShrinkThreshold = contentShrinkThreshold
-    self.contentGrowthThreshold = contentGrowthThreshold
   }
 
   /// Default appearance settings - adapts to system light/dark mode
@@ -91,7 +71,7 @@ public struct ModalAppearance: Equatable, Sendable {
     cornerRadius: 24,
     showDragIndicator: false
   )
-  
+
   /// Card-style appearance with more rounded corners
   public static let card = ModalAppearance(
     cornerRadius: 20,
@@ -104,53 +84,5 @@ public struct ModalAppearance: Equatable, Sendable {
   public static let sheet = ModalAppearance(
     cornerRadius: 20,
     horizontalPadding: 0
-  )
-}
-
-/// Configuration options for the Modal's interaction behavior.
-public struct ModalBehavior: Equatable, Sendable {
-  /// Whether the modal can be dismissed by dragging down
-  public var enableDragToDismiss: Bool
-
-  /// Whether tapping the overlay dismisses the modal
-  public var tapToDismiss: Bool
-
-  /// Velocity threshold for dismissal (pixels/second)
-  public var dismissVelocityThreshold: CGFloat
-
-  /// Distance threshold for dismissal (pixels)
-  public var dismissDistanceThreshold: CGFloat
-
-  /// Creates a custom behavior configuration
-  /// - Parameters:
-  ///   - enableDragToDismiss: Whether dragging can dismiss the modal
-  ///   - tapToDismiss: Whether tapping the overlay dismisses the modal
-  ///   - dismissVelocityThreshold: Velocity threshold for dismissal
-  ///   - dismissDistanceThreshold: Distance threshold for dismissal
-  public init(
-    enableDragToDismiss: Bool = true,
-    tapToDismiss: Bool = true,
-    dismissVelocityThreshold: CGFloat = 170,
-    dismissDistanceThreshold: CGFloat = 100
-  ) {
-    self.enableDragToDismiss = enableDragToDismiss
-    self.tapToDismiss = tapToDismiss
-    self.dismissVelocityThreshold = dismissVelocityThreshold
-    self.dismissDistanceThreshold = dismissDistanceThreshold
-  }
-
-  /// Default behavior settings
-  public static let `default` = ModalBehavior()
-
-  /// Non-dismissible modal that can only be dismissed programmatically
-  public static let nonDismissible = ModalBehavior(
-    enableDragToDismiss: false,
-    tapToDismiss: false
-  )
-
-  /// Easy-to-dismiss modal with lower thresholds
-  public static let easyDismiss = ModalBehavior(
-    dismissVelocityThreshold: 100,
-    dismissDistanceThreshold: 50
   )
 }

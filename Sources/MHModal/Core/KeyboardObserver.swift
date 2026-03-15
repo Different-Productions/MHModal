@@ -8,6 +8,7 @@
 import SwiftUI
 
 /// Holds the keyboard overlap value, updated by `KeyboardOverlapUIView`.
+@MainActor
 @Observable
 final class KeyboardObserver {
     /// How many points of the tracked view the keyboard actually covers (0 when hidden).
@@ -57,11 +58,15 @@ final class KeyboardOverlapUIView: UIView {
 
         let localFrame = convert(frame, from: nil)
         let overlap = max(bounds.height - localFrame.origin.y, 0)
-        observer?.keyboardHeight = overlap
+        MainActor.assumeIsolated {
+            observer?.keyboardHeight = overlap
+        }
     }
 
     @objc private func keyboardWillHide(_ notification: Notification) {
-        observer?.keyboardHeight = 0
+        MainActor.assumeIsolated {
+            observer?.keyboardHeight = 0
+        }
     }
 }
 

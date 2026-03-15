@@ -9,7 +9,7 @@ import SwiftUI
 
 /// Clean, modern API for presenting morphing modals.
 extension View {
-    
+
     /// Presents a morphing modal that automatically resizes to fit its content.
     ///
     /// This is the primary API for MHModal - it provides automatic morphing behavior
@@ -28,7 +28,7 @@ extension View {
     /// ```
     public func presentModal<Content: View>(
         isPresented: Binding<Bool>,
-        @ViewBuilder content: @escaping () -> Content
+        @ViewBuilder content: () -> Content
     ) -> some View {
         presentModal(
             isPresented: isPresented,
@@ -37,7 +37,7 @@ extension View {
             content: content
         )
     }
-    
+
     /// Presents a morphing modal with custom appearance.
     ///
     /// - Parameters:
@@ -47,7 +47,7 @@ extension View {
     public func presentModal<Content: View>(
         isPresented: Binding<Bool>,
         appearance: ModalAppearance,
-        @ViewBuilder content: @escaping () -> Content
+        @ViewBuilder content: () -> Content
     ) -> some View {
         presentModal(
             isPresented: isPresented,
@@ -56,7 +56,7 @@ extension View {
             content: content
         )
     }
-    
+
     /// Presents a morphing modal with custom behavior.
     ///
     /// - Parameters:
@@ -66,7 +66,7 @@ extension View {
     public func presentModal<Content: View>(
         isPresented: Binding<Bool>,
         behavior: ModalBehavior,
-        @ViewBuilder content: @escaping () -> Content
+        @ViewBuilder content: () -> Content
     ) -> some View {
         presentModal(
             isPresented: isPresented,
@@ -75,7 +75,7 @@ extension View {
             content: content
         )
     }
-    
+
     /// Presents a morphing modal with full customization.
     ///
     /// - Parameters:
@@ -87,7 +87,7 @@ extension View {
         isPresented: Binding<Bool>,
         appearance: ModalAppearance,
         behavior: ModalBehavior,
-        @ViewBuilder content: @escaping () -> Content
+        @ViewBuilder content: () -> Content
     ) -> some View {
         self.modifier(
             PresentModalModifier(
@@ -104,38 +104,38 @@ extension View {
 
 /// ViewModifier that handles modal presentation logic
 private struct PresentModalModifier<ModalContent: View>: ViewModifier {
-    
+
     @Binding var isPresented: Bool
     let appearance: ModalAppearance
     let behavior: ModalBehavior
-    let content: () -> ModalContent
-    
+    let modalContent: ModalContent
+
     @State private var coordinator: ModalCoordinator
-    
+
     init(
         isPresented: Binding<Bool>,
         appearance: ModalAppearance,
         behavior: ModalBehavior,
-        @ViewBuilder content: @escaping () -> ModalContent
+        @ViewBuilder content: () -> ModalContent
     ) {
         self._isPresented = isPresented
         self.appearance = appearance
         self.behavior = behavior
-        self.content = content
-        
+        self.modalContent = content()
+
         // Initialize coordinator with configuration
         self._coordinator = State(wrappedValue: ModalCoordinator(
             appearance: appearance,
             behavior: behavior
         ))
     }
-    
+
     func body(content: Content) -> some View {
         ZStack {
             content
-            
+
             MorphingModal(coordinator: coordinator) {
-                self.content()
+                modalContent
             }
         }
         .onChange(of: isPresented) { oldValue, newValue in
@@ -211,7 +211,7 @@ extension View {
     /// Presents a modal with minimal appearance (no drag indicator)
     public func presentMinimalModal<Content: View>(
         isPresented: Binding<Bool>,
-        @ViewBuilder content: @escaping () -> Content
+        @ViewBuilder content: () -> Content
     ) -> some View {
         presentModal(
             isPresented: isPresented,
@@ -219,11 +219,11 @@ extension View {
             content: content
         )
     }
-    
+
     /// Presents a modal with card appearance (more rounded, tighter spacing)
     public func presentCardModal<Content: View>(
         isPresented: Binding<Bool>,
-        @ViewBuilder content: @escaping () -> Content
+        @ViewBuilder content: () -> Content
     ) -> some View {
         presentModal(
             isPresented: isPresented,
@@ -235,7 +235,7 @@ extension View {
     /// Presents a modal with sheet appearance (edge-to-edge, matching native iOS sheets)
     public func presentSheetModal<Content: View>(
         isPresented: Binding<Bool>,
-        @ViewBuilder content: @escaping () -> Content
+        @ViewBuilder content: () -> Content
     ) -> some View {
         presentModal(
             isPresented: isPresented,

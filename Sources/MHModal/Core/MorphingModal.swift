@@ -19,6 +19,8 @@ public struct MorphingModal<Content: View>: View {
     let coordinator: ModalCoordinator
     let content: Content
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     // MARK: - Initialization
 
     /// Creates a new morphing modal
@@ -45,10 +47,14 @@ public struct MorphingModal<Content: View>: View {
                 modalContentView
             }
         }
-        .background(ScreenSizeDetector(coordinator: coordinator))
+        .modifier(ScreenSizeDetector(coordinator: coordinator))
         #if canImport(UIKit)
         .background(KeyboardOverlapReader(observer: coordinator.keyboardObserver))
         #endif
+        .onAppear { coordinator.reduceMotion = reduceMotion }
+        .onChange(of: reduceMotion) { _, newValue in
+            coordinator.reduceMotion = newValue
+        }
     }
 
     // MARK: - Drag-Responsive Computed Properties
@@ -95,6 +101,8 @@ public struct MorphingModal<Content: View>: View {
         coordinator.appearance.overlayColor
             .opacity(overlayOpacity)
             .ignoresSafeArea()
+            .accessibilityAddTraits(.isButton)
+            .accessibilityLabel("Dismiss")
             .onTapGesture {
                 if coordinator.keyboardHeight > 0 {
                     #if canImport(UIKit)
@@ -134,12 +142,7 @@ public struct MorphingModal<Content: View>: View {
         .frame(maxWidth: .infinity)
         .background(coordinator.appearance.background)
         .contentTransition(.interpolate)
-        .clipShape(
-            RoundedRectangle(
-                cornerRadius: dragCornerRadius,
-                style: .continuous
-            )
-        )
+        .clipShape(.rect(cornerRadius: dragCornerRadius))
         .shadow(color: .black.opacity(dragShadowOpacity), radius: dragShadowRadius, x: 0, y: -2)
         .scaleEffect(dragScale, anchor: .bottom)
         .padding(.horizontal, coordinator.appearance.horizontalPadding)
@@ -179,7 +182,7 @@ public struct MorphingModal<Content: View>: View {
     /// Content with size detection attached
     private var contentWithSizeDetection: some View {
         content
-            .background(SizeDetector(coordinator: coordinator))
+            .modifier(SizeDetector(coordinator: coordinator))
     }
 
     // MARK: - Gestures
