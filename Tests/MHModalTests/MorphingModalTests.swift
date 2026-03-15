@@ -1,73 +1,49 @@
-import XCTest
+import Testing
 import SwiftUI
 @testable import MHModal
 
 @MainActor
-final class MorphingModalTests: XCTestCase {
-    
-    func testMorphingModalInitialization() {
+struct MorphingModalTests {
+
+    @Test func initialization() {
         let coordinator = ModalCoordinator()
-        let modal = MorphingModal(coordinator: coordinator) {
+        // Verify modal can be constructed without errors
+        _ = MorphingModal(coordinator: coordinator) {
             Text("Test Content")
         }
-        
-        // Test that modal can be created
-        XCTAssertNotNil(modal)
     }
-    
-    func testMorphingModalWithCustomCoordinator() {
-        let appearance = ModalAppearance.minimal
-        let behavior = ModalBehavior.nonDismissible
-        let coordinator = ModalCoordinator(appearance: appearance, behavior: behavior)
-        
-        let modal = MorphingModal(coordinator: coordinator) {
+
+    @Test func initializationWithCustomCoordinator() {
+        let coordinator = ModalCoordinator(appearance: .minimal, behavior: .nonDismissible)
+
+        _ = MorphingModal(coordinator: coordinator) {
             VStack {
                 Text("Custom Content")
                 Button("Action") { }
             }
         }
-        
-        XCTAssertNotNil(modal)
     }
-    
-    func testMorphingModalBodyRendering() {
+
+    @Test func bodyRendersWhenPresented() {
         let coordinator = ModalCoordinator()
         coordinator.isPresented = true
-        
+
         let modal = MorphingModal(coordinator: coordinator) {
             Text("Test Content")
         }
-        
-        // Test that body can be accessed without errors
-        let body = modal.body
-        XCTAssertNotNil(body)
+
+        // Access body to verify it renders without error
+        _ = modal.body
     }
-    
-    func testMorphingModalWithPresentedState() {
-        let coordinator = ModalCoordinator()
-        coordinator.isPresented = true
-        coordinator.screenSize = CGSize(width: 375, height: 812)
-        coordinator.contentSize = CGSize(width: 300, height: 200)
-        
-        let modal = MorphingModal(coordinator: coordinator) {
-            Text("Presented Content")
-        }
-        
-        // When presented, modal should show content
-        let body = modal.body
-        XCTAssertNotNil(body)
-    }
-    
-    func testMorphingModalWithNotPresentedState() {
+
+    @Test func bodyRendersWhenNotPresented() {
         let coordinator = ModalCoordinator()
         coordinator.isPresented = false
-        
+
         let modal = MorphingModal(coordinator: coordinator) {
             Text("Hidden Content")
         }
-        
-        // When not presented, modal should still have a body (just not visible)
-        let body = modal.body
-        XCTAssertNotNil(body)
+
+        _ = modal.body
     }
 }

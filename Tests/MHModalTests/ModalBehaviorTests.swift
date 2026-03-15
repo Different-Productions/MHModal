@@ -1,36 +1,37 @@
-import XCTest
+import Testing
 import SwiftUI
 @testable import MHModal
 
-final class ModalBehaviorTests: XCTestCase {
-    func testDefaultBehavior() {
+struct ModalBehaviorTests {
+
+    @Test func defaultBehavior() {
         let behavior = ModalBehavior.default
 
-        XCTAssertTrue(behavior.enableDragToDismiss)
-        XCTAssertTrue(behavior.tapToDismiss)
-        XCTAssertEqual(behavior.dismissVelocityThreshold, 170)
-        XCTAssertEqual(behavior.dismissDistanceThreshold, 100)
+        #expect(behavior.enableDragToDismiss == true)
+        #expect(behavior.tapToDismiss == true)
+        #expect(behavior.dismissVelocityThreshold == 170)
+        #expect(behavior.dismissDistanceThreshold == 100)
     }
 
-    func testNonDismissibleBehavior() {
+    @Test func nonDismissibleBehavior() {
         let behavior = ModalBehavior.nonDismissible
 
-        XCTAssertFalse(behavior.enableDragToDismiss)
-        XCTAssertFalse(behavior.tapToDismiss)
-        XCTAssertEqual(behavior.dismissVelocityThreshold, 170)
-        XCTAssertEqual(behavior.dismissDistanceThreshold, 100)
+        #expect(behavior.enableDragToDismiss == false)
+        #expect(behavior.tapToDismiss == false)
+        #expect(behavior.dismissVelocityThreshold == 170)
+        #expect(behavior.dismissDistanceThreshold == 100)
     }
 
-    func testEasyDismissBehavior() {
+    @Test func easyDismissBehavior() {
         let behavior = ModalBehavior.easyDismiss
 
-        XCTAssertTrue(behavior.enableDragToDismiss)
-        XCTAssertTrue(behavior.tapToDismiss)
-        XCTAssertEqual(behavior.dismissVelocityThreshold, 100)
-        XCTAssertEqual(behavior.dismissDistanceThreshold, 50)
+        #expect(behavior.enableDragToDismiss == true)
+        #expect(behavior.tapToDismiss == true)
+        #expect(behavior.dismissVelocityThreshold == 100)
+        #expect(behavior.dismissDistanceThreshold == 50)
     }
 
-    func testCustomBehavior() {
+    @Test func customBehavior() {
         let customBehavior = ModalBehavior(
             enableDragToDismiss: false,
             tapToDismiss: false,
@@ -38,29 +39,18 @@ final class ModalBehaviorTests: XCTestCase {
             dismissDistanceThreshold: 150
         )
 
-        XCTAssertFalse(customBehavior.enableDragToDismiss)
-        XCTAssertFalse(customBehavior.tapToDismiss)
-        XCTAssertEqual(customBehavior.dismissVelocityThreshold, 200)
-        XCTAssertEqual(customBehavior.dismissDistanceThreshold, 150)
+        #expect(customBehavior.enableDragToDismiss == false)
+        #expect(customBehavior.tapToDismiss == false)
+        #expect(customBehavior.dismissVelocityThreshold == 200)
+        #expect(customBehavior.dismissDistanceThreshold == 150)
     }
 
-    func testBehaviorEquality() {
-        let behavior1 = ModalBehavior(
-            enableDragToDismiss: false,
-            dismissVelocityThreshold: 200
-        )
+    @Test func equality() {
+        let behavior1 = ModalBehavior(enableDragToDismiss: false, dismissVelocityThreshold: 200)
+        let behavior2 = ModalBehavior(enableDragToDismiss: false, dismissVelocityThreshold: 200)
+        let behavior3 = ModalBehavior(enableDragToDismiss: true, dismissVelocityThreshold: 200)
 
-        let behavior2 = ModalBehavior(
-            enableDragToDismiss: false,
-            dismissVelocityThreshold: 200
-        )
-
-        let behavior3 = ModalBehavior(
-            enableDragToDismiss: true,
-            dismissVelocityThreshold: 200
-        )
-
-        XCTAssertEqual(behavior1, behavior2)
-        XCTAssertNotEqual(behavior1, behavior3)
+        #expect(behavior1 == behavior2)
+        #expect(behavior1 != behavior3)
     }
 }

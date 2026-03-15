@@ -1,198 +1,246 @@
-import XCTest
+import Testing
 import SwiftUI
 @testable import MHModal
 
 @MainActor
-final class ModalCoordinatorTests: XCTestCase {
-    
-    func testInitialization() {
+struct ModalCoordinatorTests {
+
+    // MARK: - Initialization
+
+    @Test func defaultInitialization() {
         let coordinator = ModalCoordinator()
-        
-        XCTAssertFalse(coordinator.isPresented)
-        XCTAssertEqual(coordinator.contentSize, .zero)
-        XCTAssertEqual(coordinator.dragOffset, 0)
-        XCTAssertEqual(coordinator.screenSize, .zero)
-        XCTAssertFalse(coordinator.isMorphing)
+
+        #expect(coordinator.isPresented == false)
+        #expect(coordinator.contentSize == .zero)
+        #expect(coordinator.dragOffset == 0)
+        #expect(coordinator.screenSize == .zero)
+        #expect(coordinator.isMorphing == false)
     }
-    
-    func testInitializationWithCustomConfiguration() {
+
+    @Test func customConfigurationInitialization() {
         let appearance = ModalAppearance.minimal
         let behavior = ModalBehavior.nonDismissible
         let coordinator = ModalCoordinator(appearance: appearance, behavior: behavior)
-        
-        XCTAssertEqual(coordinator.appearance, appearance)
-        XCTAssertEqual(coordinator.behavior, behavior)
+
+        #expect(coordinator.appearance == appearance)
+        #expect(coordinator.behavior == behavior)
     }
-    
-    func testPresent() {
+
+    // MARK: - Present / Dismiss
+
+    @Test func present() {
         let coordinator = ModalCoordinator()
-        
+
         coordinator.present()
-        
-        XCTAssertTrue(coordinator.isPresented)
+
+        #expect(coordinator.isPresented == true)
     }
-    
-    func testDismiss() {
+
+    @Test func dismiss() {
         let coordinator = ModalCoordinator()
         coordinator.isPresented = true
         coordinator.dragOffset = 50
-        
+
         coordinator.dismiss()
-        
-        XCTAssertFalse(coordinator.isPresented)
-        XCTAssertEqual(coordinator.dragOffset, 0)
+
+        #expect(coordinator.isPresented == false)
+        #expect(coordinator.dragOffset == 0)
     }
-    
-    func testUpdateContentSize() {
+
+    // MARK: - Content Size
+
+    @Test func updateContentSize() {
         let coordinator = ModalCoordinator()
         let newSize = CGSize(width: 300, height: 200)
-        
+
         coordinator.updateContentSize(newSize)
-        
-        XCTAssertEqual(coordinator.contentSize, newSize)
-        XCTAssertTrue(coordinator.isMorphing)
+
+        #expect(coordinator.contentSize == newSize)
+        #expect(coordinator.isMorphing == true)
     }
-    
-    func testUpdateContentSizeIgnoresZero() {
+
+    @Test func updateContentSizeIgnoresZero() {
         let coordinator = ModalCoordinator()
         coordinator.contentSize = CGSize(width: 100, height: 100)
-        
+
         coordinator.updateContentSize(.zero)
-        
-        XCTAssertEqual(coordinator.contentSize, CGSize(width: 100, height: 100))
-        XCTAssertFalse(coordinator.isMorphing)
+
+        #expect(coordinator.contentSize == CGSize(width: 100, height: 100))
+        #expect(coordinator.isMorphing == false)
     }
-    
-    func testUpdateContentSizeIgnoresSameSize() {
+
+    @Test func updateContentSizeIgnoresSameSize() {
         let coordinator = ModalCoordinator()
         let size = CGSize(width: 200, height: 150)
         coordinator.contentSize = size
-        
+
         coordinator.updateContentSize(size)
-        
-        XCTAssertFalse(coordinator.isMorphing)
+
+        #expect(coordinator.isMorphing == false)
     }
-    
-    func testUpdateScreenSize() {
+
+    // MARK: - Screen Size
+
+    @Test func updateScreenSize() {
         let coordinator = ModalCoordinator()
         let screenSize = CGSize(width: 375, height: 812)
-        
+
         coordinator.updateScreenSize(screenSize)
-        
-        XCTAssertEqual(coordinator.screenSize, screenSize)
+
+        #expect(coordinator.screenSize == screenSize)
     }
-    
-    func testModalHeightCalculation() {
+
+    @Test func updateScreenSizeIgnoresSameSize() {
+        let coordinator = ModalCoordinator()
+        let screenSize = CGSize(width: 375, height: 812)
+        coordinator.screenSize = screenSize
+
+        coordinator.updateScreenSize(screenSize)
+
+        #expect(coordinator.screenSize == screenSize, "Screen size should remain unchanged")
+    }
+
+    // MARK: - Modal Height
+
+    @Test func modalHeightCalculation() {
         let coordinator = ModalCoordinator()
         coordinator.screenSize = CGSize(width: 375, height: 812)
         coordinator.contentSize = CGSize(width: 300, height: 200)
-        
+
         let expectedHeight = 200 + coordinator.topPadding + coordinator.bottomPadding
-        XCTAssertEqual(coordinator.modalHeight, expectedHeight)
+        #expect(coordinator.modalHeight == expectedHeight)
     }
-    
-    func testModalHeightWithMaxHeightConstraint() {
+
+    @Test func modalHeightCappedByMaxHeightRatio() {
         let coordinator = ModalCoordinator()
         coordinator.screenSize = CGSize(width: 375, height: 812)
-        coordinator.contentSize = CGSize(width: 300, height: 800) // Very tall content
-        
+        coordinator.contentSize = CGSize(width: 300, height: 800)
+
         let maxHeight = coordinator.screenSize.height * coordinator.appearance.maxHeightRatio
-        XCTAssertEqual(coordinator.modalHeight, maxHeight)
+        #expect(coordinator.modalHeight == maxHeight)
     }
-    
-    func testModalHeightWithMinHeightConstraint() {
+
+    @Test func modalHeightFloorsAtMinimum() {
         let coordinator = ModalCoordinator()
         coordinator.screenSize = CGSize(width: 375, height: 812)
-        coordinator.contentSize = CGSize(width: 300, height: 10) // Very small content
-        
-        XCTAssertEqual(coordinator.modalHeight, 100) // Minimum height
+        coordinator.contentSize = CGSize(width: 300, height: 10)
+
+        #expect(coordinator.modalHeight == 100, "Minimum modal height should be 100")
     }
-    
-    func testTopPaddingWithDragIndicator() {
+
+    @Test func modalHeightFallbackWhenScreenSizeIsZero() {
+        let coordinator = ModalCoordinator()
+
+        #expect(coordinator.modalHeight == 200, "Should return 200 when screen size is zero")
+    }
+
+    // MARK: - Padding
+
+    @Test func topPaddingWithDragIndicator() {
         let coordinator = ModalCoordinator(appearance: ModalAppearance(showDragIndicator: true))
-        
-        XCTAssertEqual(coordinator.topPadding, 36)
+
+        #expect(coordinator.topPadding == 36)
     }
-    
-    func testTopPaddingWithoutDragIndicator() {
+
+    @Test func topPaddingWithoutDragIndicator() {
         let coordinator = ModalCoordinator(appearance: ModalAppearance(showDragIndicator: false))
-        
-        XCTAssertEqual(coordinator.topPadding, 16)
+
+        #expect(coordinator.topPadding == 16)
     }
-    
-    func testShouldScroll() {
+
+    @Test func bottomPaddingIsAlwaysZero() {
+        let coordinator = ModalCoordinator()
+
+        #expect(coordinator.bottomPadding == 0)
+    }
+
+    // MARK: - Content Needs Scroll
+
+    @Test func contentNeedsScrollWhenExceedingMaxHeight() {
         let coordinator = ModalCoordinator()
         coordinator.screenSize = CGSize(width: 375, height: 812)
-        // Set content size that would exceed max modal height
         let maxHeight = coordinator.screenSize.height * coordinator.appearance.maxHeightRatio
-        coordinator.contentSize = CGSize(width: 300, height: maxHeight) // Content that fills max height
-        
-        XCTAssertTrue(coordinator.contentNeedsScroll)
+        coordinator.contentSize = CGSize(width: 300, height: maxHeight)
+
+        #expect(coordinator.contentNeedsScroll == true)
     }
-    
-    func testShouldNotScroll() {
+
+    @Test func contentDoesNotNeedScrollForSmallContent() {
         let coordinator = ModalCoordinator()
         coordinator.screenSize = CGSize(width: 375, height: 812)
-        coordinator.contentSize = CGSize(width: 300, height: 100) // Small content
-        
-        XCTAssertFalse(coordinator.contentNeedsScroll)
+        coordinator.contentSize = CGSize(width: 300, height: 100)
+
+        #expect(coordinator.contentNeedsScroll == false)
     }
-    
-    func testUpdateDragOffset() {
+
+    @Test func contentNeedsScrollReturnsFalseWhenScreenSizeIsZero() {
         let coordinator = ModalCoordinator()
-        
+        coordinator.contentSize = CGSize(width: 300, height: 1000)
+
+        #expect(coordinator.contentNeedsScroll == false, "Should return false when screen size is zero")
+    }
+
+    // MARK: - Drag Gesture
+
+    @Test func updateDragOffset() {
+        let coordinator = ModalCoordinator()
+
         coordinator.updateDragOffset(50)
-        
-        XCTAssertEqual(coordinator.dragOffset, 50)
+
+        #expect(coordinator.dragOffset == 50)
     }
-    
-    func testHandleDragEndWithDismiss() {
-        let coordinator = ModalCoordinator()
+
+    @Test(arguments: [
+        (translation: 150.0, velocity: 50.0, dragEnabled: true, expectedDismissed: true),
+        (translation: 50.0, velocity: 200.0, dragEnabled: true, expectedDismissed: true),
+        (translation: 30.0, velocity: 50.0, dragEnabled: true, expectedDismissed: false),
+        (translation: 200.0, velocity: 300.0, dragEnabled: false, expectedDismissed: false),
+        (translation: 0.0, velocity: 0.0, dragEnabled: true, expectedDismissed: false),
+    ])
+    func handleDragEnd(
+        translation: Double,
+        velocity: Double,
+        dragEnabled: Bool,
+        expectedDismissed: Bool
+    ) {
+        let behavior = ModalBehavior(enableDragToDismiss: dragEnabled)
+        let coordinator = ModalCoordinator(behavior: behavior)
         coordinator.isPresented = true
-        
-        // Large translation should dismiss
-        coordinator.handleDragEnd(translation: 150, velocity: 50)
-        
-        XCTAssertFalse(coordinator.isPresented)
+
+        coordinator.handleDragEnd(translation: translation, velocity: velocity)
+
+        #expect(coordinator.isPresented != expectedDismissed, "translation=\(translation), velocity=\(velocity), dragEnabled=\(dragEnabled)")
     }
-    
-    func testHandleDragEndWithHighVelocity() {
-        let coordinator = ModalCoordinator()
-        coordinator.isPresented = true
-        
-        // High velocity should dismiss
-        coordinator.handleDragEnd(translation: 50, velocity: 200)
-        
-        XCTAssertFalse(coordinator.isPresented)
-    }
-    
-    func testHandleDragEndWithoutDismiss() {
+
+    @Test func handleDragEndResetsDragOffsetWhenNotDismissed() {
         let coordinator = ModalCoordinator()
         coordinator.isPresented = true
         coordinator.dragOffset = 50
-        
-        // Small translation and velocity should not dismiss
+
         coordinator.handleDragEnd(translation: 30, velocity: 50)
-        
-        XCTAssertTrue(coordinator.isPresented)
-        // Note: dragOffset reset happens with animation, so we can't easily test it
+
+        #expect(coordinator.isPresented == true)
+        // dragOffset is reset inside withAnimation, so value is set synchronously
+        #expect(coordinator.dragOffset == 0, "Drag offset should reset when not dismissed")
     }
-    
-    func testHandleDragEndWhenDragDisabled() {
-        let coordinator = ModalCoordinator(behavior: ModalBehavior(enableDragToDismiss: false))
-        coordinator.isPresented = true
-        
-        // Even large translation shouldn't dismiss when drag is disabled
-        coordinator.handleDragEnd(translation: 200, velocity: 300)
-        
-        XCTAssertTrue(coordinator.isPresented)
+
+    // MARK: - Convenience Initializers
+
+    @Test func minimalConvenience() {
+        let coordinator = ModalCoordinator.minimal()
+        #expect(coordinator.appearance == .minimal)
     }
-    
-    func testConvenienceInitializers() {
-        let minimalCoordinator = ModalCoordinator.minimal()
-        XCTAssertEqual(minimalCoordinator.appearance, .minimal)
-        
-        let cardCoordinator = ModalCoordinator.card()
-        XCTAssertEqual(cardCoordinator.appearance, .card)
+
+    @Test func cardConvenience() {
+        let coordinator = ModalCoordinator.card()
+        #expect(coordinator.appearance == .card)
+    }
+
+    // MARK: - Keyboard Height
+
+    @Test func keyboardHeightDefaultsToZero() {
+        let coordinator = ModalCoordinator()
+
+        #expect(coordinator.keyboardHeight == 0)
     }
 }

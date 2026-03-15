@@ -1,38 +1,49 @@
-import XCTest
+import Testing
 import SwiftUI
 @testable import MHModal
 
-final class ModalAppearanceTests: XCTestCase {
-    func testDefaultAppearance() {
-        let appearance = ModalAppearance.default
+struct ModalAppearanceTests {
 
-        XCTAssertEqual(appearance.background, Color(.systemBackground))
-        XCTAssertEqual(appearance.overlayColor, Color.black.opacity(0.4))
-        XCTAssertEqual(appearance.cornerRadius, 38)
-        XCTAssertEqual(appearance.horizontalPadding, 8)
-        XCTAssertEqual(appearance.bottomPadding, 0)
-        XCTAssertTrue(appearance.showDragIndicator)
-        XCTAssertEqual(appearance.dragIndicatorColor, Color(.systemGray3))
-        XCTAssertEqual(appearance.maxHeightRatio, 0.85)
+    @Test func defaultAppearance() {
+        let appearance = ModalAppearance.default
+        let expectedBackground = Color(UIColor.systemBackground)
+        let expectedIndicatorColor = Color(UIColor.systemGray3)
+
+        #expect(appearance.background == expectedBackground)
+        #expect(appearance.overlayColor == Color.black.opacity(0.4))
+        #expect(appearance.cornerRadius == 38)
+        #expect(appearance.horizontalPadding == 8)
+        #expect(appearance.bottomPadding == 0)
+        #expect(appearance.showDragIndicator == true)
+        #expect(appearance.dragIndicatorColor == expectedIndicatorColor)
+        #expect(appearance.maxHeightRatio == 0.85)
     }
 
-    func testCardAppearance() {
+    @Test func cardAppearance() {
         let appearance = ModalAppearance.card
 
-        XCTAssertEqual(appearance.cornerRadius, 20)
-        XCTAssertEqual(appearance.horizontalPadding, 16)
-        XCTAssertEqual(appearance.bottomPadding, 16)
-        XCTAssertTrue(appearance.showDragIndicator)
+        #expect(appearance.cornerRadius == 20)
+        #expect(appearance.horizontalPadding == 16)
+        #expect(appearance.bottomPadding == 16)
+        #expect(appearance.showDragIndicator == true)
     }
 
-    func testMinimalAppearance() {
+    @Test func minimalAppearance() {
         let appearance = ModalAppearance.minimal
 
-        XCTAssertEqual(appearance.cornerRadius, 24)
-        XCTAssertFalse(appearance.showDragIndicator)
+        #expect(appearance.cornerRadius == 24)
+        #expect(appearance.showDragIndicator == false)
     }
 
-    func testCustomAppearance() {
+    @Test func sheetAppearance() {
+        let appearance = ModalAppearance.sheet
+
+        #expect(appearance.cornerRadius == 20)
+        #expect(appearance.horizontalPadding == 0)
+        #expect(appearance.showDragIndicator == true)
+    }
+
+    @Test func customAppearance() {
         let customAppearance = ModalAppearance(
             background: .blue,
             overlayColor: .red.opacity(0.3),
@@ -44,47 +55,34 @@ final class ModalAppearanceTests: XCTestCase {
             maxHeightRatio: 0.75
         )
 
-        XCTAssertEqual(customAppearance.background, .blue)
-        XCTAssertEqual(customAppearance.overlayColor, .red.opacity(0.3))
-        XCTAssertEqual(customAppearance.cornerRadius, 20)
-        XCTAssertEqual(customAppearance.horizontalPadding, 30)
-        XCTAssertEqual(customAppearance.bottomPadding, 25)
-        XCTAssertFalse(customAppearance.showDragIndicator)
-        XCTAssertEqual(customAppearance.dragIndicatorColor, .green)
-        XCTAssertEqual(customAppearance.maxHeightRatio, 0.75)
+        #expect(customAppearance.background == .blue)
+        #expect(customAppearance.overlayColor == .red.opacity(0.3))
+        #expect(customAppearance.cornerRadius == 20)
+        #expect(customAppearance.horizontalPadding == 30)
+        #expect(customAppearance.bottomPadding == 25)
+        #expect(customAppearance.showDragIndicator == false)
+        #expect(customAppearance.dragIndicatorColor == .green)
+        #expect(customAppearance.maxHeightRatio == 0.75)
     }
 
-    func testMaxHeightRatioConstraints() {
-        // Test with value greater than 1
-        let tooHighValue = ModalAppearance(maxHeightRatio: 1.5)
-        XCTAssertEqual(tooHighValue.maxHeightRatio, 1.0)
-
-        // Test with negative value
-        let negativeValue = ModalAppearance(maxHeightRatio: -0.5)
-        XCTAssertEqual(negativeValue.maxHeightRatio, 0.0)
-
-        // Test with valid value
-        let validValue = ModalAppearance(maxHeightRatio: 0.75)
-        XCTAssertEqual(validValue.maxHeightRatio, 0.75)
+    @Test(arguments: [
+        (input: CGFloat(1.5), expected: CGFloat(1.0)),
+        (input: CGFloat(-0.5), expected: CGFloat(0.0)),
+        (input: CGFloat(0.75), expected: CGFloat(0.75)),
+        (input: CGFloat(0.0), expected: CGFloat(0.0)),
+        (input: CGFloat(1.0), expected: CGFloat(1.0)),
+    ])
+    func maxHeightRatioClamping(input: CGFloat, expected: CGFloat) {
+        let appearance = ModalAppearance(maxHeightRatio: input)
+        #expect(appearance.maxHeightRatio == expected, "maxHeightRatio \(input) should clamp to \(expected)")
     }
 
-    func testAppearanceEquality() {
-        let appearance1 = ModalAppearance(
-            background: .blue,
-            cornerRadius: 20
-        )
+    @Test func equality() {
+        let appearance1 = ModalAppearance(background: .blue, cornerRadius: 20)
+        let appearance2 = ModalAppearance(background: .blue, cornerRadius: 20)
+        let appearance3 = ModalAppearance(background: .red, cornerRadius: 20)
 
-        let appearance2 = ModalAppearance(
-            background: .blue,
-            cornerRadius: 20
-        )
-
-        let appearance3 = ModalAppearance(
-            background: .red,
-            cornerRadius: 20
-        )
-
-        XCTAssertEqual(appearance1, appearance2)
-        XCTAssertNotEqual(appearance1, appearance3)
+        #expect(appearance1 == appearance2)
+        #expect(appearance1 != appearance3)
     }
 }
