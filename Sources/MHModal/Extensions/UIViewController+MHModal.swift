@@ -14,8 +14,8 @@ extension UIViewController {
 
   /// Presents SwiftUI content as a native self-sizing sheet.
   ///
-  /// Uses `sheetPresentationController` with a self-sizing detent and `.large()`.
-  /// System handles corner radius, dimming, and presentation.
+  /// Uses `sheetPresentationController` with a self-sizing detent.
+  /// The system handles corner radius, dimming, and keyboard avoidance.
   ///
   /// ```swift
   /// presentMHModal {
@@ -25,21 +25,45 @@ extension UIViewController {
   /// ```
   @MainActor
   public func presentMHModal<Content: View>(
+    appearance: ModalAppearance = .default,
+    behavior: ModalBehavior = .default,
     @ViewBuilder content: @escaping () -> Content
   ) {
-    let hostingController = UIHostingController(rootView: content())
-    hostingController.view.backgroundColor = .systemBackground
-    hostingController.sizingOptions = .intrinsicContentSize
+    let hosting = SelfSizingHostingController(rootView: content())
+    hosting.sizingOptions = .intrinsicContentSize
+    hosting.view.backgroundColor = UIColor(appearance.background)
+    hosting.isModalInPresentation = !behavior.isDismissible
 
-    if let sheet = hostingController.sheetPresentationController {
-      let selfSizingDetent = UISheetPresentationController.Detent.custom { [weak hostingController] _ in
-        hostingController?.view.intrinsicContentSize.height
+    if let sheet = hosting.sheetPresentationController {
+      let selfSizing = UISheetPresentationController.Detent.custom(
+        identifier: .init("selfSizing")
+      ) { [weak hosting] _ in
+        hosting?.view.intrinsicContentSize.height
       }
-      sheet.detents = [selfSizingDetent, .large()]
-      sheet.prefersGrabberVisible = true
+
+      if let ratio = appearance.maxHeightRatio {
+        let percentage = UISheetPresentationController.Detent.custom(
+          identifier: .init("maxHeight")
+        ) { context in
+          context.maximumDetentValue * ratio
+        }
+        sheet.detents = [selfSizing, percentage]
+      } else {
+        sheet.detents = [selfSizing]
+      }
+
+      sheet.prefersGrabberVisible = appearance.showGrabber
+
+      if let cornerRadius = appearance.cornerRadius {
+        sheet.preferredCornerRadius = cornerRadius
+      }
+
+      if !appearance.dimBackground {
+        sheet.largestUndimmedDetentIdentifier = .init("selfSizing")
+      }
     }
 
-    present(hostingController, animated: true)
+    present(hosting, animated: true)
   }
 }
 #endif

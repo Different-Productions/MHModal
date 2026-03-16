@@ -7,150 +7,84 @@
 
 import SwiftUI
 
-/// Configuration options for the Modal's visual appearance.
+/// Configuration for the modal's visual appearance.
+///
+/// Native sheet properties are configured through `UISheetPresentationController`.
+/// All presentations are edge-to-edge; corner radius, grabber visibility,
+/// and dimming are forwarded directly to the sheet.
 public struct ModalAppearance: Equatable, Sendable {
-  /// The background color of the modal
+  /// The background color of the modal content.
   public var background: Color
 
-  /// The background color of the overlay behind the modal
-  public var overlayColor: Color
+  /// Whether to show the grabber at the top of the sheet.
+  public var showGrabber: Bool
 
-  /// Corner radius of the modal
-  public var cornerRadius: CGFloat
+  /// Corner radius of the sheet. `nil` uses the system default.
+  public var cornerRadius: CGFloat?
 
-  /// Horizontal padding around the modal content
-  public var horizontalPadding: CGFloat
+  /// Maximum height as a ratio of screen height (0.0–1.0).
+  /// `nil` means pure self-sizing (no percentage-based detent).
+  /// When set, adds a percentage detent alongside the self-sizing detent.
+  public var maxHeightRatio: CGFloat?
 
-  /// Bottom padding for the modal
-  public var bottomPadding: CGFloat
+  /// Whether the area behind the sheet is dimmed.
+  /// When `false`, sets `largestUndimmedDetentIdentifier` so the
+  /// user can interact with content behind the sheet.
+  public var dimBackground: Bool
 
-  /// Whether to show the drag indicator at the top of the modal
-  public var showDragIndicator: Bool
-
-  /// Color of the drag indicator (if shown)
-  public var dragIndicatorColor: Color
-
-  /// Maximum height (as percentage of screen height, 0.0-1.0)
-  public var maxHeightRatio: CGFloat
-
-  /// Animation used for size changes
-  public var sizeChangeAnimation: Animation
-
-  /// Threshold for allowing content to shrink (in points)
-  /// A higher value means the modal will only shrink when content is reduced significantly
-  public var contentShrinkThreshold: CGFloat
-
-  /// Threshold for detecting content growth in scroll views (in points)
-  /// A lower value means the modal will be more responsive to small content changes
-  public var contentGrowthThreshold: CGFloat
-
-  /// Creates a custom appearance configuration
+  /// Creates a custom appearance configuration.
   /// - Parameters:
-  ///   - background: Background color of the modal
-  ///   - overlayColor: Color of the dimmed background overlay
-  ///   - cornerRadius: Corner radius of the modal
-  ///   - horizontalPadding: Horizontal padding around the modal
-  ///   - bottomPadding: Bottom padding for the modal
-  ///   - showDragIndicator: Whether to show the drag indicator
-  ///   - dragIndicatorColor: Color of the drag indicator
-  ///   - maxHeightRatio: Maximum height as percentage of screen (0.0-1.0)
-  ///   - sizeChangeAnimation: Animation used for size changes
-  ///   - contentShrinkThreshold: Threshold for allowing content to shrink (in points)
-  ///   - contentGrowthThreshold: Threshold for detecting content growth in scroll views (in points)
+  ///   - background: Background color of the modal content.
+  ///   - showGrabber: Whether to show the sheet grabber.
+  ///   - cornerRadius: Corner radius (`nil` = system default).
+  ///   - maxHeightRatio: Maximum height ratio (`nil` = pure self-sizing).
+  ///   - dimBackground: Whether to dim the background.
   public init(
     background: Color = Color(.systemBackground),
-    overlayColor: Color = Color.black.opacity(0.4),
-    cornerRadius: CGFloat = 38,
-    horizontalPadding: CGFloat = 8,
-    bottomPadding: CGFloat = 0,
-    showDragIndicator: Bool = true,
-    dragIndicatorColor: Color = Color(.systemGray3),
-    maxHeightRatio: CGFloat = 0.85,
-    sizeChangeAnimation: Animation = .spring(response: 0.35, dampingFraction: 0.7),
-    contentShrinkThreshold: CGFloat = 80,
-    contentGrowthThreshold: CGFloat = 20
+    showGrabber: Bool = true,
+    cornerRadius: CGFloat? = nil,
+    maxHeightRatio: CGFloat? = nil,
+    dimBackground: Bool = true
   ) {
     self.background = background
-    self.overlayColor = overlayColor
+    self.showGrabber = showGrabber
     self.cornerRadius = cornerRadius
-    self.horizontalPadding = horizontalPadding
-    self.bottomPadding = bottomPadding
-    self.showDragIndicator = showDragIndicator
-    self.dragIndicatorColor = dragIndicatorColor
-    self.maxHeightRatio = min(max(maxHeightRatio, 0), 1)
-    self.sizeChangeAnimation = sizeChangeAnimation
-    self.contentShrinkThreshold = contentShrinkThreshold
-    self.contentGrowthThreshold = contentGrowthThreshold
+    if let ratio = maxHeightRatio {
+      self.maxHeightRatio = min(max(ratio, 0), 1)
+    } else {
+      self.maxHeightRatio = nil
+    }
+    self.dimBackground = dimBackground
   }
 
-  /// Default appearance settings - adapts to system light/dark mode
+  /// Default appearance — system background, grabber visible, self-sizing.
   public static let `default` = ModalAppearance()
 
-  /// Minimal appearance with no drag indicator - adapts to system light/dark mode
+  /// Minimal appearance — no grabber, 24pt corner radius.
   public static let minimal = ModalAppearance(
-    cornerRadius: 24,
-    showDragIndicator: false
-  )
-  
-  /// Card-style appearance with more rounded corners
-  public static let card = ModalAppearance(
-    cornerRadius: 20,
-    horizontalPadding: 16,
-    bottomPadding: 16
+    showGrabber: false,
+    cornerRadius: 24
   )
 
-  /// Sheet-style appearance that matches native iOS sheet presentation.
-  /// Edge-to-edge with system-matching corner radius and no side padding.
-  public static let sheet = ModalAppearance(
-    cornerRadius: 20,
-    horizontalPadding: 0
-  )
+  /// Sheet appearance — identical to default (native sheets are edge-to-edge).
+  public static let sheet = ModalAppearance()
 }
 
-/// Configuration options for the Modal's interaction behavior.
+/// Configuration for the modal's interaction behavior.
 public struct ModalBehavior: Equatable, Sendable {
-  /// Whether the modal can be dismissed by dragging down
-  public var enableDragToDismiss: Bool
+  /// Whether the user can dismiss the modal interactively (drag or tap outside).
+  /// When `false`, maps to `isModalInPresentation = true` on the sheet.
+  public var isDismissible: Bool
 
-  /// Whether tapping the overlay dismisses the modal
-  public var tapToDismiss: Bool
-
-  /// Velocity threshold for dismissal (pixels/second)
-  public var dismissVelocityThreshold: CGFloat
-
-  /// Distance threshold for dismissal (pixels)
-  public var dismissDistanceThreshold: CGFloat
-
-  /// Creates a custom behavior configuration
-  /// - Parameters:
-  ///   - enableDragToDismiss: Whether dragging can dismiss the modal
-  ///   - tapToDismiss: Whether tapping the overlay dismisses the modal
-  ///   - dismissVelocityThreshold: Velocity threshold for dismissal
-  ///   - dismissDistanceThreshold: Distance threshold for dismissal
-  public init(
-    enableDragToDismiss: Bool = true,
-    tapToDismiss: Bool = true,
-    dismissVelocityThreshold: CGFloat = 170,
-    dismissDistanceThreshold: CGFloat = 100
-  ) {
-    self.enableDragToDismiss = enableDragToDismiss
-    self.tapToDismiss = tapToDismiss
-    self.dismissVelocityThreshold = dismissVelocityThreshold
-    self.dismissDistanceThreshold = dismissDistanceThreshold
+  /// Creates a custom behavior configuration.
+  /// - Parameter isDismissible: Whether the modal can be dismissed interactively.
+  public init(isDismissible: Bool = true) {
+    self.isDismissible = isDismissible
   }
 
-  /// Default behavior settings
+  /// Default behavior — dismissible by drag or tap.
   public static let `default` = ModalBehavior()
 
-  /// Non-dismissible modal that can only be dismissed programmatically
-  public static let nonDismissible = ModalBehavior(
-    enableDragToDismiss: false,
-    tapToDismiss: false
-  )
-
-  /// Easy-to-dismiss modal with lower thresholds
-  public static let easyDismiss = ModalBehavior(
-    dismissVelocityThreshold: 100,
-    dismissDistanceThreshold: 50
-  )
+  /// Non-dismissible — can only be dismissed programmatically.
+  public static let nonDismissible = ModalBehavior(isDismissible: false)
 }

@@ -4,118 +4,80 @@ import SwiftUI
 
 @MainActor
 final class ViewPresentModalExtensionTests: XCTestCase {
-    
-    func testPresentModalBasicAPI() {
-        let testView = Text("Base View")
-        let binding = Binding<Bool>(get: { false }, set: { _ in })
-        
-        let modalView = testView.presentModal(isPresented: binding) {
-            Text("Modal Content")
-        }
-        
-        // Test that the modifier can be applied
-        XCTAssertNotNil(modalView)
+
+  func testPresentModalBasicAPI() {
+    let binding = Binding<Bool>(get: { false }, set: { _ in })
+    let view = Text("Base").presentModal(isPresented: binding) {
+      Text("Content")
     }
-    
-    func testPresentModalWithAppearance() {
-        let testView = Text("Base View")
-        let binding = Binding<Bool>(get: { false }, set: { _ in })
-        let appearance = ModalAppearance.minimal
-        
-        let modalView = testView.presentModal(
-            isPresented: binding,
-            appearance: appearance
-        ) {
-            Text("Minimal Modal Content")
-        }
-        
-        XCTAssertNotNil(modalView)
+    XCTAssertNotNil(view)
+  }
+
+  func testPresentModalWithAppearance() {
+    let binding = Binding<Bool>(get: { false }, set: { _ in })
+    let view = Text("Base").presentModal(
+      isPresented: binding,
+      appearance: .minimal
+    ) {
+      Text("Content")
     }
-    
-    func testPresentModalWithBehavior() {
-        let testView = Text("Base View")
-        let binding = Binding<Bool>(get: { false }, set: { _ in })
-        let behavior = ModalBehavior.nonDismissible
-        
-        let modalView = testView.presentModal(
-            isPresented: binding,
-            behavior: behavior
-        ) {
-            Text("Non-dismissible Modal Content")
-        }
-        
-        XCTAssertNotNil(modalView)
+    XCTAssertNotNil(view)
+  }
+
+  func testPresentModalWithBehavior() {
+    let binding = Binding<Bool>(get: { false }, set: { _ in })
+    let view = Text("Base").presentModal(
+      isPresented: binding,
+      behavior: .nonDismissible
+    ) {
+      Text("Content")
     }
-    
-    func testPresentModalWithFullCustomization() {
-        let testView = Text("Base View")
-        let binding = Binding<Bool>(get: { false }, set: { _ in })
-        let appearance = ModalAppearance.minimal
-        let behavior = ModalBehavior.easyDismiss
-        
-        let modalView = testView.presentModal(
-            isPresented: binding,
-            appearance: appearance,
-            behavior: behavior
-        ) {
-            VStack {
-                Text("Fully Customized Modal")
-                Button("Action") { }
-            }
-        }
-        
-        XCTAssertNotNil(modalView)
+    XCTAssertNotNil(view)
+  }
+
+  func testPresentModalWithFullCustomization() {
+    let binding = Binding<Bool>(get: { false }, set: { _ in })
+    let view = Text("Base").presentModal(
+      isPresented: binding,
+      appearance: .minimal,
+      behavior: .nonDismissible
+    ) {
+      VStack {
+        Text("Customized")
+        Button("Action") { }
+      }
     }
-    
-    func testPresentCardModal() {
-        let testView = Text("Base View")
-        let binding = Binding<Bool>(get: { false }, set: { _ in })
-        
-        let modalView = testView.presentCardModal(isPresented: binding) {
-            Text("Card Modal Content")
-        }
-        
-        XCTAssertNotNil(modalView)
+    XCTAssertNotNil(view)
+  }
+
+  func testPresentMinimalModal() {
+    let binding = Binding<Bool>(get: { false }, set: { _ in })
+    let view = Text("Base").presentMinimalModal(isPresented: binding) {
+      Text("Content")
     }
-    
-    func testPresentMinimalModal() {
-        let testView = Text("Base View")
-        let binding = Binding<Bool>(get: { false }, set: { _ in })
-        
-        let modalView = testView.presentMinimalModal(isPresented: binding) {
-            Text("Minimal Modal Content")
-        }
-        
-        XCTAssertNotNil(modalView)
+    XCTAssertNotNil(view)
+  }
+
+  func testPresentSheetModal() {
+    let binding = Binding<Bool>(get: { false }, set: { _ in })
+    let view = Text("Base").presentSheetModal(isPresented: binding) {
+      Text("Content")
     }
-    
-    func testModalWithComplexContent() {
-        let testView = Text("Base View")
-        let binding = Binding<Bool>(get: { true }, set: { _ in })
-        
-        let modalView = testView.presentModal(isPresented: binding) {
-            VStack(spacing: 20) {
-                Text("Complex Modal")
-                    .font(.title)
-                
-                HStack {
-                    Button("Cancel") { }
-                    Button("Confirm") { }
-                }
-                
-                ScrollView {
-                    LazyVStack {
-                        ForEach(0..<10, id: \.self) { index in
-                            Text("Item \(index)")
-                                .padding()
-                        }
-                    }
-                }
-                .frame(height: 200)
-            }
-            .padding()
-        }
-        
-        XCTAssertNotNil(modalView)
+    XCTAssertNotNil(view)
+  }
+
+  func testPresentModalWithPhase() {
+    let binding = Binding<Bool>(get: { false }, set: { _ in })
+    let view = Text("Base").presentModal(
+      isPresented: binding,
+      phase: 0
+    ) { step in
+      switch step {
+      case 0: Text("Step 1")
+      case 1: Text("Step 2")
+      default: Text("Done")
+      }
     }
+    XCTAssertNotNil(view)
+  }
 }
