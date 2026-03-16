@@ -49,7 +49,11 @@ public struct MorphingModal<Content: View>: View {
         }
         .modifier(ScreenSizeDetector(coordinator: coordinator))
         #if canImport(UIKit)
-        .background(KeyboardOverlapReader(observer: coordinator.keyboardObserver))
+        .background {
+            if coordinator.isPresented {
+                KeyboardOverlapReader(observer: coordinator.keyboardObserver)
+            }
+        }
         #endif
         .onAppear { coordinator.reduceMotion = reduceMotion }
         .onChange(of: reduceMotion) { _, newValue in
@@ -73,11 +77,6 @@ public struct MorphingModal<Content: View>: View {
     /// Corner radius grows +6pt during drag — transforms from "docked sheet" to "floating card".
     private var dragCornerRadius: CGFloat {
         coordinator.appearance.cornerRadius + (6.0 * dragProgress)
-    }
-
-    /// Shadow radius deepens from 10 → 20 during drag — modal feels "lifted off surface".
-    private var dragShadowRadius: CGFloat {
-        10 + (10 * dragProgress)
     }
 
     /// Shadow opacity deepens from 0.15 → 0.25 during drag.
@@ -143,7 +142,7 @@ public struct MorphingModal<Content: View>: View {
         .background(coordinator.appearance.background)
         .contentTransition(.interpolate)
         .clipShape(.rect(cornerRadius: dragCornerRadius))
-        .shadow(color: .black.opacity(dragShadowOpacity), radius: dragShadowRadius, x: 0, y: -2)
+        .shadow(color: .black.opacity(dragShadowOpacity), radius: 14, x: 0, y: -2)
         .scaleEffect(dragScale, anchor: .bottom)
         .padding(.horizontal, coordinator.appearance.horizontalPadding)
         .padding(.bottom, coordinator.appearance.bottomPadding + coordinator.keyboardHeight)
@@ -171,12 +170,10 @@ public struct MorphingModal<Content: View>: View {
     private var contentContainer: some View {
         ScrollView {
             contentWithSizeDetection
-                .padding(.bottom, coordinator.keyboardHeight)
         }
         .scrollBounceBehavior(.basedOnSize)
         .scrollIndicators(.hidden)
         .scrollDismissesKeyboard(.interactively)
-        .animation(coordinator.effectiveAnimation.keyboard, value: coordinator.keyboardHeight)
     }
 
     /// Content with size detection attached
