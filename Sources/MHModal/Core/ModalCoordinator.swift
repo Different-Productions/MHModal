@@ -19,21 +19,21 @@ public final class ModalCoordinator {
     // MARK: - Core State
 
     /// Whether the modal is currently presented
-    public var isPresented: Bool = false
+    public internal(set) var isPresented: Bool = false
 
     /// Current size of the modal content
-    public var contentSize: CGSize = .zero
+    public internal(set) var contentSize: CGSize = .zero
 
     /// Current drag offset for gesture interactions
-    public var dragOffset: CGFloat = 0
+    public internal(set) var dragOffset: CGFloat = 0
 
     /// Screen dimensions for calculations
-    public var screenSize: CGSize = .zero
+    public internal(set) var screenSize: CGSize = .zero
 
     // MARK: - Animation State
 
     /// Whether a morphing animation is currently in progress
-    public var isMorphing: Bool = false
+    public internal(set) var isMorphing: Bool = false
 
     /// Previous content size for smooth transitions
     private var previousContentSize: CGSize = .zero
@@ -44,12 +44,12 @@ public final class ModalCoordinator {
     // MARK: - Accessibility
 
     /// Whether reduced motion is preferred (synced from SwiftUI environment)
-    public var reduceMotion: Bool = false
+    internal var reduceMotion: Bool = false
 
     // MARK: - Keyboard
 
     /// Keyboard observer for tracking keyboard visibility
-    let keyboardObserver = KeyboardObserver()
+    internal let keyboardObserver = KeyboardObserver()
 
     /// Current keyboard height (0 when hidden)
     public var keyboardHeight: CGFloat {
@@ -169,7 +169,7 @@ public final class ModalCoordinator {
 
         let minHeight: CGFloat = 100
         let maxHeight = screenSize.height * appearance.maxHeightRatio
-        let totalContentHeight = contentSize.height + topPadding + bottomPadding
+        let totalContentHeight = contentSize.height + topPadding + contentBottomInset
 
         // When keyboard is visible, cap so modal fits between keyboard and top of screen.
         // .ignoresSafeArea(.keyboard) keeps screenSize stable so this math is correct.
@@ -184,11 +184,11 @@ public final class ModalCoordinator {
 
     /// Top padding (includes drag indicator space)
     public var topPadding: CGFloat {
-        appearance.showDragIndicator ? 36 : 16
+        appearance.showsDragIndicator ? 36 : 16
     }
 
-    /// Bottom padding for content
-    public var bottomPadding: CGFloat {
+    /// Bottom inset applied to content within the modal
+    public var contentBottomInset: CGFloat {
         0
     }
 
@@ -198,7 +198,7 @@ public final class ModalCoordinator {
     public var contentNeedsScroll: Bool {
         guard screenSize.height > 0 else { return false }
         let maxHeight = screenSize.height * appearance.maxHeightRatio
-        return contentSize.height + topPadding + bottomPadding > maxHeight
+        return contentSize.height + topPadding + contentBottomInset > maxHeight
     }
 
     // MARK: - Gesture Support
@@ -209,15 +209,15 @@ public final class ModalCoordinator {
         dragOffset = offset
     }
 
-    /// Handles end of drag gesture, determining whether to dismiss
+    /// Completes a drag gesture, determining whether to dismiss or snap back
     /// - Parameters:
     ///   - translation: Final translation of the drag
     ///   - velocity: Velocity of the drag gesture
-    public func handleDragEnd(translation: CGFloat, velocity: CGFloat) {
+    public func completeDrag(translation: CGFloat, velocity: CGFloat) {
         let shouldDismiss = translation > behavior.dismissDistanceThreshold ||
                            velocity > behavior.dismissVelocityThreshold
 
-        if shouldDismiss && behavior.enableDragToDismiss {
+        if shouldDismiss && behavior.isDragToDismissEnabled {
             dismiss()
         } else {
             // Return to original position
@@ -232,12 +232,12 @@ public final class ModalCoordinator {
 
 extension ModalCoordinator {
     /// Creates a coordinator with minimal appearance
-    public static func minimal() -> ModalCoordinator {
+    public static func makeMinimal() -> ModalCoordinator {
         ModalCoordinator(appearance: .minimal)
     }
 
     /// Creates a coordinator with card appearance
-    public static func card() -> ModalCoordinator {
+    public static func makeCard() -> ModalCoordinator {
         ModalCoordinator(appearance: .card)
     }
 }

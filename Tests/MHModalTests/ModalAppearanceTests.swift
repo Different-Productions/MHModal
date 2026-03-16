@@ -14,7 +14,7 @@ struct ModalAppearanceTests {
         #expect(appearance.cornerRadius == 38)
         #expect(appearance.horizontalPadding == 8)
         #expect(appearance.bottomPadding == 0)
-        #expect(appearance.showDragIndicator == true)
+        #expect(appearance.showsDragIndicator == true)
         #expect(appearance.dragIndicatorColor == expectedIndicatorColor)
         #expect(appearance.maxHeightRatio == 0.85)
     }
@@ -25,14 +25,14 @@ struct ModalAppearanceTests {
         #expect(appearance.cornerRadius == 20)
         #expect(appearance.horizontalPadding == 16)
         #expect(appearance.bottomPadding == 16)
-        #expect(appearance.showDragIndicator == true)
+        #expect(appearance.showsDragIndicator == true)
     }
 
     @Test func minimalAppearance() {
         let appearance = ModalAppearance.minimal
 
         #expect(appearance.cornerRadius == 24)
-        #expect(appearance.showDragIndicator == false)
+        #expect(appearance.showsDragIndicator == false)
     }
 
     @Test func sheetAppearance() {
@@ -40,7 +40,7 @@ struct ModalAppearanceTests {
 
         #expect(appearance.cornerRadius == 20)
         #expect(appearance.horizontalPadding == 0)
-        #expect(appearance.showDragIndicator == true)
+        #expect(appearance.showsDragIndicator == true)
     }
 
     @Test func customAppearance() {
@@ -50,7 +50,7 @@ struct ModalAppearanceTests {
             cornerRadius: 20,
             horizontalPadding: 30,
             bottomPadding: 25,
-            showDragIndicator: false,
+            showsDragIndicator: false,
             dragIndicatorColor: .green,
             maxHeightRatio: 0.75
         )
@@ -60,7 +60,7 @@ struct ModalAppearanceTests {
         #expect(customAppearance.cornerRadius == 20)
         #expect(customAppearance.horizontalPadding == 30)
         #expect(customAppearance.bottomPadding == 25)
-        #expect(customAppearance.showDragIndicator == false)
+        #expect(customAppearance.showsDragIndicator == false)
         #expect(customAppearance.dragIndicatorColor == .green)
         #expect(customAppearance.maxHeightRatio == 0.75)
     }

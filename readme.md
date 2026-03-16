@@ -90,7 +90,7 @@ The modal cross-fades between phases and morphs to the new content height.
 Present from any `UIViewController` — handles hosting controller lifecycle and dismiss wiring automatically.
 
 ```swift
-viewController.presentMHModal { isPresented in
+viewController.presentMorphingModal { isPresented in
     MyModalContent(isPresented: isPresented)
 }
 ```
@@ -98,7 +98,7 @@ viewController.presentMHModal { isPresented in
 Defaults to `.sheet` appearance (edge-to-edge). Pass a custom appearance if needed:
 
 ```swift
-viewController.presentMHModal(appearance: .default) { _ in
+viewController.presentMorphingModal(appearance: .default) { _ in
     Text("Floating card style")
 }
 ```
@@ -128,15 +128,15 @@ Use `VStack` + `ForEach` instead of `List` inside the modal. The SDK provides it
 | `cornerRadius` | `38` | Corner radius |
 | `horizontalPadding` | `20` | Side padding |
 | `bottomPadding` | `0` | Bottom padding |
-| `showDragIndicator` | `true` | Show the grab handle |
+| `showsDragIndicator` | `true` | Show the grab handle |
 | `maxHeightRatio` | `0.85` | Max height as fraction of screen |
 
 ### ModalBehavior
 
 | Property | Default | Description |
 |----------|---------|-------------|
-| `enableDragToDismiss` | `true` | Allow drag-to-dismiss gesture |
-| `tapToDismiss` | `true` | Dismiss on overlay tap |
+| `isDragToDismissEnabled` | `true` | Allow drag-to-dismiss gesture |
+| `dismissesOnOverlayTap` | `true` | Dismiss on overlay tap |
 | `dismissVelocityThreshold` | `170` | Velocity needed to dismiss (px/s) |
 | `dismissDistanceThreshold` | `100` | Distance needed to dismiss (px) |
 

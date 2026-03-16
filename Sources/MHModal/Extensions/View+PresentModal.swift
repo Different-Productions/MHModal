@@ -18,6 +18,8 @@ extension View {
     ///
     /// - Parameters:
     ///   - isPresented: Binding that controls modal presentation
+    ///   - appearance: Visual appearance configuration
+    ///   - behavior: Interaction behavior configuration
     ///   - content: The content to display inside the modal
     ///
     /// Example:
@@ -28,65 +30,8 @@ extension View {
     /// ```
     public func presentModal<Content: View>(
         isPresented: Binding<Bool>,
-        @ViewBuilder content: () -> Content
-    ) -> some View {
-        presentModal(
-            isPresented: isPresented,
-            appearance: .default,
-            behavior: .default,
-            content: content
-        )
-    }
-
-    /// Presents a morphing modal with custom appearance.
-    ///
-    /// - Parameters:
-    ///   - isPresented: Binding that controls modal presentation
-    ///   - appearance: Visual appearance configuration
-    ///   - content: The content to display inside the modal
-    public func presentModal<Content: View>(
-        isPresented: Binding<Bool>,
-        appearance: ModalAppearance,
-        @ViewBuilder content: () -> Content
-    ) -> some View {
-        presentModal(
-            isPresented: isPresented,
-            appearance: appearance,
-            behavior: .default,
-            content: content
-        )
-    }
-
-    /// Presents a morphing modal with custom behavior.
-    ///
-    /// - Parameters:
-    ///   - isPresented: Binding that controls modal presentation
-    ///   - behavior: Interaction behavior configuration
-    ///   - content: The content to display inside the modal
-    public func presentModal<Content: View>(
-        isPresented: Binding<Bool>,
-        behavior: ModalBehavior,
-        @ViewBuilder content: () -> Content
-    ) -> some View {
-        presentModal(
-            isPresented: isPresented,
-            appearance: .default,
-            behavior: behavior,
-            content: content
-        )
-    }
-
-    /// Presents a morphing modal with full customization.
-    ///
-    /// - Parameters:
-    ///   - isPresented: Binding that controls modal presentation
-    ///   - appearance: Visual appearance configuration
-    ///   - behavior: Interaction behavior configuration
-    ///   - content: The content to display inside the modal
-    public func presentModal<Content: View>(
-        isPresented: Binding<Bool>,
-        appearance: ModalAppearance,
-        behavior: ModalBehavior,
+        appearance: ModalAppearance = .default,
+        behavior: ModalBehavior = .default,
         @ViewBuilder content: () -> Content
     ) -> some View {
         self.modifier(

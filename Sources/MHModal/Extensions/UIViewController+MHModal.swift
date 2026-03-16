@@ -18,13 +18,13 @@ extension UIViewController {
   /// System handles corner radius, dimming, and presentation.
   ///
   /// ```swift
-  /// presentMHModal {
+  /// presentMorphingModal {
   ///     Text("Hello from MHModal")
   ///         .padding()
   /// }
   /// ```
   @MainActor
-  public func presentMHModal<Content: View>(
+  public func presentMorphingModal<Content: View>(
     @ViewBuilder content: @escaping () -> Content
   ) {
     let hostingController = UIHostingController(rootView: content())

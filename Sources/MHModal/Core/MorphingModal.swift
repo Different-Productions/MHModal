@@ -111,7 +111,7 @@ public struct MorphingModal<Content: View>: View {
                         to: nil, from: nil, for: nil
                     )
                     #endif
-                } else if coordinator.behavior.tapToDismiss {
+                } else if coordinator.behavior.dismissesOnOverlayTap {
                     coordinator.dismiss()
                 }
             }
@@ -131,7 +131,7 @@ public struct MorphingModal<Content: View>: View {
     private var modalContentView: some View {
         VStack(spacing: 0) {
             // Drag indicator
-            if coordinator.appearance.showDragIndicator {
+            if coordinator.appearance.showsDragIndicator {
                 dragIndicator
             }
 
@@ -171,7 +171,7 @@ public struct MorphingModal<Content: View>: View {
     private var contentContainer: some View {
         ScrollView {
             contentWithSizeDetection
-                .padding(.bottom, coordinator.bottomPadding + coordinator.keyboardHeight)
+                .padding(.bottom, coordinator.contentBottomInset + coordinator.keyboardHeight)
         }
         .scrollBounceBehavior(.basedOnSize)
         .scrollIndicators(.hidden)
@@ -190,7 +190,7 @@ public struct MorphingModal<Content: View>: View {
     private var dragGesture: some Gesture {
         DragGesture()
             .onChanged { value in
-                if coordinator.behavior.enableDragToDismiss {
+                if coordinator.behavior.isDragToDismissEnabled {
                     let translation = value.translation.height
                     let offset: CGFloat
                     if translation < 0 {
@@ -206,9 +206,9 @@ public struct MorphingModal<Content: View>: View {
                 }
             }
             .onEnded { value in
-                if coordinator.behavior.enableDragToDismiss {
+                if coordinator.behavior.isDragToDismissEnabled {
                     let velocity = value.predictedEndLocation.y - value.location.y
-                    coordinator.handleDragEnd(
+                    coordinator.completeDrag(
                         translation: value.translation.height,
                         velocity: velocity
                     )

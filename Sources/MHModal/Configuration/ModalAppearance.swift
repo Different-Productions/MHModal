@@ -24,13 +24,13 @@ public struct ModalAppearance: Equatable, Sendable {
   /// Bottom padding for the modal
   public var bottomPadding: CGFloat
 
-  /// Whether to show the drag indicator at the top of the modal
-  public var showDragIndicator: Bool
+  /// Whether the drag indicator is shown at the top of the modal
+  public var showsDragIndicator: Bool
 
   /// Color of the drag indicator (if shown)
   public var dragIndicatorColor: Color
 
-  /// Maximum height (as percentage of screen height, 0.0-1.0)
+  /// Maximum height as a fraction of screen height (0.0–1.0)
   public var maxHeightRatio: CGFloat
 
   /// Creates a custom appearance configuration
@@ -40,16 +40,16 @@ public struct ModalAppearance: Equatable, Sendable {
   ///   - cornerRadius: Corner radius of the modal
   ///   - horizontalPadding: Horizontal padding around the modal
   ///   - bottomPadding: Bottom padding for the modal
-  ///   - showDragIndicator: Whether to show the drag indicator
+  ///   - showsDragIndicator: Whether the drag indicator is shown
   ///   - dragIndicatorColor: Color of the drag indicator
-  ///   - maxHeightRatio: Maximum height as percentage of screen (0.0-1.0)
+  ///   - maxHeightRatio: Maximum height as a fraction of screen height (0.0–1.0)
   public init(
     background: Color = Color(.systemBackground),
     overlayColor: Color = Color.black.opacity(0.4),
     cornerRadius: CGFloat = 38,
     horizontalPadding: CGFloat = 8,
     bottomPadding: CGFloat = 0,
-    showDragIndicator: Bool = true,
+    showsDragIndicator: Bool = true,
     dragIndicatorColor: Color = Color(.systemGray3),
     maxHeightRatio: CGFloat = 0.85
   ) {
@@ -58,7 +58,7 @@ public struct ModalAppearance: Equatable, Sendable {
     self.cornerRadius = cornerRadius
     self.horizontalPadding = horizontalPadding
     self.bottomPadding = bottomPadding
-    self.showDragIndicator = showDragIndicator
+    self.showsDragIndicator = showsDragIndicator
     self.dragIndicatorColor = dragIndicatorColor
     self.maxHeightRatio = min(max(maxHeightRatio, 0), 1)
   }
@@ -69,7 +69,7 @@ public struct ModalAppearance: Equatable, Sendable {
   /// Minimal appearance with no drag indicator - adapts to system light/dark mode
   public static let minimal = ModalAppearance(
     cornerRadius: 24,
-    showDragIndicator: false
+    showsDragIndicator: false
   )
 
   /// Card-style appearance with more rounded corners

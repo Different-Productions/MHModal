@@ -10,10 +10,10 @@ import SwiftUI
 /// Configuration options for the Modal's interaction behavior.
 public struct ModalBehavior: Equatable, Sendable {
   /// Whether the modal can be dismissed by dragging down
-  public var enableDragToDismiss: Bool
+  public var isDragToDismissEnabled: Bool
 
   /// Whether tapping the overlay dismisses the modal
-  public var tapToDismiss: Bool
+  public var dismissesOnOverlayTap: Bool
 
   /// Velocity threshold for dismissal (pixels/second)
   public var dismissVelocityThreshold: CGFloat
@@ -23,18 +23,18 @@ public struct ModalBehavior: Equatable, Sendable {
 
   /// Creates a custom behavior configuration
   /// - Parameters:
-  ///   - enableDragToDismiss: Whether dragging can dismiss the modal
-  ///   - tapToDismiss: Whether tapping the overlay dismisses the modal
+  ///   - isDragToDismissEnabled: Whether dragging can dismiss the modal
+  ///   - dismissesOnOverlayTap: Whether tapping the overlay dismisses the modal
   ///   - dismissVelocityThreshold: Velocity threshold for dismissal
   ///   - dismissDistanceThreshold: Distance threshold for dismissal
   public init(
-    enableDragToDismiss: Bool = true,
-    tapToDismiss: Bool = true,
+    isDragToDismissEnabled: Bool = true,
+    dismissesOnOverlayTap: Bool = true,
     dismissVelocityThreshold: CGFloat = 170,
     dismissDistanceThreshold: CGFloat = 100
   ) {
-    self.enableDragToDismiss = enableDragToDismiss
-    self.tapToDismiss = tapToDismiss
+    self.isDragToDismissEnabled = isDragToDismissEnabled
+    self.dismissesOnOverlayTap = dismissesOnOverlayTap
     self.dismissVelocityThreshold = dismissVelocityThreshold
     self.dismissDistanceThreshold = dismissDistanceThreshold
   }
@@ -44,8 +44,8 @@ public struct ModalBehavior: Equatable, Sendable {
 
   /// Non-dismissible modal that can only be dismissed programmatically
   public static let nonDismissible = ModalBehavior(
-    enableDragToDismiss: false,
-    tapToDismiss: false
+    isDragToDismissEnabled: false,
+    dismissesOnOverlayTap: false
   )
 
   /// Easy-to-dismiss modal with lower thresholds

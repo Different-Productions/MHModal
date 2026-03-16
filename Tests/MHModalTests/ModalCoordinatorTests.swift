@@ -107,7 +107,7 @@ struct ModalCoordinatorTests {
         coordinator.screenSize = CGSize(width: 375, height: 812)
         coordinator.contentSize = CGSize(width: 300, height: 200)
 
-        let expectedHeight = 200 + coordinator.topPadding + coordinator.bottomPadding
+        let expectedHeight = 200 + coordinator.topPadding + coordinator.contentBottomInset
         #expect(coordinator.modalHeight == expectedHeight)
     }
 
@@ -137,21 +137,21 @@ struct ModalCoordinatorTests {
     // MARK: - Padding
 
     @Test func topPaddingWithDragIndicator() {
-        let coordinator = ModalCoordinator(appearance: ModalAppearance(showDragIndicator: true))
+        let coordinator = ModalCoordinator(appearance: ModalAppearance(showsDragIndicator: true))
 
         #expect(coordinator.topPadding == 36)
     }
 
     @Test func topPaddingWithoutDragIndicator() {
-        let coordinator = ModalCoordinator(appearance: ModalAppearance(showDragIndicator: false))
+        let coordinator = ModalCoordinator(appearance: ModalAppearance(showsDragIndicator: false))
 
         #expect(coordinator.topPadding == 16)
     }
 
-    @Test func bottomPaddingIsAlwaysZero() {
+    @Test func contentBottomInsetIsAlwaysZero() {
         let coordinator = ModalCoordinator()
 
-        #expect(coordinator.bottomPadding == 0)
+        #expect(coordinator.contentBottomInset == 0)
     }
 
     // MARK: - Content Needs Scroll
@@ -197,27 +197,27 @@ struct ModalCoordinatorTests {
         (translation: 200.0, velocity: 300.0, dragEnabled: false, expectedDismissed: false),
         (translation: 0.0, velocity: 0.0, dragEnabled: true, expectedDismissed: false),
     ])
-    func handleDragEnd(
+    func completeDrag(
         translation: Double,
         velocity: Double,
         dragEnabled: Bool,
         expectedDismissed: Bool
     ) {
-        let behavior = ModalBehavior(enableDragToDismiss: dragEnabled)
+        let behavior = ModalBehavior(isDragToDismissEnabled: dragEnabled)
         let coordinator = ModalCoordinator(behavior: behavior)
         coordinator.isPresented = true
 
-        coordinator.handleDragEnd(translation: translation, velocity: velocity)
+        coordinator.completeDrag(translation: translation, velocity: velocity)
 
         #expect(coordinator.isPresented != expectedDismissed, "translation=\(translation), velocity=\(velocity), dragEnabled=\(dragEnabled)")
     }
 
-    @Test func handleDragEndResetsDragOffsetWhenNotDismissed() {
+    @Test func completeDragResetsDragOffsetWhenNotDismissed() {
         let coordinator = ModalCoordinator()
         coordinator.isPresented = true
         coordinator.dragOffset = 50
 
-        coordinator.handleDragEnd(translation: 30, velocity: 50)
+        coordinator.completeDrag(translation: 30, velocity: 50)
 
         #expect(coordinator.isPresented == true)
         // dragOffset is reset inside withAnimation, so value is set synchronously
@@ -226,13 +226,13 @@ struct ModalCoordinatorTests {
 
     // MARK: - Convenience Initializers
 
-    @Test func minimalConvenience() {
-        let coordinator = ModalCoordinator.minimal()
+    @Test func makeMinimalConvenience() {
+        let coordinator = ModalCoordinator.makeMinimal()
         #expect(coordinator.appearance == .minimal)
     }
 
-    @Test func cardConvenience() {
-        let coordinator = ModalCoordinator.card()
+    @Test func makeCardConvenience() {
+        let coordinator = ModalCoordinator.makeCard()
         #expect(coordinator.appearance == .card)
     }
 
