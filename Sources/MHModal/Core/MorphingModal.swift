@@ -150,9 +150,9 @@ public struct MorphingModal<Content: View>: View {
         .offset(y: coordinator.dragOffset)
         .gesture(dragGesture)
         .transition(modalTransition)
-        .animation(coordinator.dragAnimation, value: coordinator.dragOffset)
-        .animation(coordinator.morphAnimation, value: coordinator.modalHeight)
-        .animation(coordinator.keyboardAnimation, value: coordinator.keyboardHeight)
+        .animation(coordinator.effectiveAnimation.drag, value: coordinator.dragOffset)
+        .animation(coordinator.effectiveAnimation.morph, value: coordinator.modalHeight)
+        .animation(coordinator.effectiveAnimation.keyboard, value: coordinator.keyboardHeight)
     }
 
     // MARK: - Drag Indicator
@@ -163,7 +163,7 @@ public struct MorphingModal<Content: View>: View {
             .frame(width: dragIndicatorWidth, height: dragIndicatorHeight)
             .padding(.top, 12)
             .padding(.bottom, 20)
-            .animation(coordinator.dragAnimation, value: dragProgress)
+            .animation(coordinator.effectiveAnimation.drag, value: dragProgress)
     }
 
     // MARK: - Content Container
@@ -171,12 +171,12 @@ public struct MorphingModal<Content: View>: View {
     private var contentContainer: some View {
         ScrollView {
             contentWithSizeDetection
-                .padding(.bottom, coordinator.contentBottomInset + coordinator.keyboardHeight)
+                .padding(.bottom, coordinator.keyboardHeight)
         }
         .scrollBounceBehavior(.basedOnSize)
         .scrollIndicators(.hidden)
         .scrollDismissesKeyboard(.interactively)
-        .animation(coordinator.keyboardAnimation, value: coordinator.keyboardHeight)
+        .animation(coordinator.effectiveAnimation.keyboard, value: coordinator.keyboardHeight)
     }
 
     /// Content with size detection attached
@@ -191,17 +191,7 @@ public struct MorphingModal<Content: View>: View {
         DragGesture()
             .onChanged { value in
                 if coordinator.behavior.isDragToDismissEnabled {
-                    let translation = value.translation.height
-                    let offset: CGFloat
-                    if translation < 0 {
-                        // Upward: smoother resistance curve
-                        let t = abs(translation)
-                        offset = -pow(t, 0.7) * 1.2
-                    } else {
-                        // Downward: progressive resistance (easy start, harder at end)
-                        let t = translation
-                        offset = pow(t, 0.85) * 1.5
-                    }
+                    let offset = coordinator.dragOffset(for: value.translation.height)
                     coordinator.updateDragOffset(offset)
                 }
             }
@@ -221,9 +211,9 @@ public struct MorphingModal<Content: View>: View {
     private var modalTransition: AnyTransition {
         .asymmetric(
             insertion: .modalPresent
-                .animation(coordinator.presentAnimation),
+                .animation(coordinator.effectiveAnimation.present),
             removal: .modalDismiss
-                .animation(coordinator.dismissAnimation)
+                .animation(coordinator.effectiveAnimation.dismiss)
         )
     }
 }

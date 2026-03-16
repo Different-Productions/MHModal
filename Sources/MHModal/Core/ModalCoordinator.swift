@@ -64,36 +64,16 @@ public final class ModalCoordinator {
     /// Interaction behavior configuration
     public let behavior: ModalBehavior
 
-    // MARK: - Animation Configuration
+    /// Animation configuration
+    public let animation: ModalAnimation
 
-    /// Simple reduced-motion fallback animation
-    private var reducedAnimation: Animation {
-        .easeInOut(duration: 0.2)
-    }
+    /// Clock used for timed operations (injectable for testing)
+    @ObservationIgnored
+    internal var clock: any Clock<Duration> = ContinuousClock()
 
-    /// Animation used for morphing transitions — slight overshoot adds life
-    public var morphAnimation: Animation {
-        reduceMotion ? reducedAnimation : .spring(response: 0.45, dampingFraction: 0.82, blendDuration: 0.1)
-    }
-
-    /// Animation used for drag gestures — faster tracking, higher damping follows finger precisely
-    public var dragAnimation: Animation {
-        reduceMotion ? reducedAnimation : .interactiveSpring(response: 0.25, dampingFraction: 0.86)
-    }
-
-    /// Animation used for presentation — subtle bounce at end feels welcoming
-    public var presentAnimation: Animation {
-        reduceMotion ? reducedAnimation : .spring(response: 0.48, dampingFraction: 0.78)
-    }
-
-    /// Animation used for dismissal — snappy, no lingering, decisive exit
-    public var dismissAnimation: Animation {
-        reduceMotion ? reducedAnimation : .spring(response: 0.35, dampingFraction: 0.88)
-    }
-
-    /// Animation used for keyboard avoidance — tracks iOS keyboard curve closely
-    public var keyboardAnimation: Animation {
-        reduceMotion ? reducedAnimation : .spring(response: 0.35, dampingFraction: 0.88)
+    /// Resolved animation respecting accessibility reduce-motion preference
+    var effectiveAnimation: ModalAnimation {
+        reduceMotion ? .reduced : animation
     }
 
     // MARK: - Initialization
@@ -102,26 +82,29 @@ public final class ModalCoordinator {
     /// - Parameters:
     ///   - appearance: Visual appearance settings
     ///   - behavior: Interaction behavior settings
+    ///   - animation: Animation configuration
     public init(
         appearance: ModalAppearance = .default,
-        behavior: ModalBehavior = .default
+        behavior: ModalBehavior = .default,
+        animation: ModalAnimation = .default
     ) {
         self.appearance = appearance
         self.behavior = behavior
+        self.animation = animation
     }
 
     // MARK: - Core Modal Operations
 
     /// Presents the modal with animation
     public func present() {
-        withAnimation(presentAnimation) {
+        withAnimation(effectiveAnimation.present) {
             isPresented = true
         }
     }
 
     /// Dismisses the modal with animation
     public func dismiss() {
-        withAnimation(dismissAnimation) {
+        withAnimation(effectiveAnimation.dismiss) {
             isPresented = false
             dragOffset = 0
         }
@@ -130,25 +113,20 @@ public final class ModalCoordinator {
     // MARK: - Size Management (Core Morphing Logic)
 
     /// Updates the content size and triggers morphing animation
-    /// This is the core of our morphing behavior - always smooth, always responsive
     /// - Parameter newSize: The new content size
     public func updateContentSize(_ newSize: CGSize) {
-        // Skip if size hasn't actually changed
         guard newSize != contentSize && newSize != .zero else { return }
 
-        // Store previous size for potential future use
         previousContentSize = contentSize
 
-        // Always morph - this is our core behavior
-        withAnimation(morphAnimation) {
+        withAnimation(effectiveAnimation.morph) {
             isMorphing = true
             contentSize = newSize
         }
 
-        // Cancel any in-flight reset so only the latest one fires
         morphResetTask?.cancel()
         morphResetTask = Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(500))
+            try? await clock.sleep(for: .milliseconds(500))
             guard !Task.isCancelled else { return }
             self.isMorphing = false
         }
@@ -169,10 +147,8 @@ public final class ModalCoordinator {
 
         let minHeight: CGFloat = 100
         let maxHeight = screenSize.height * appearance.maxHeightRatio
-        let totalContentHeight = contentSize.height + topPadding + contentBottomInset
+        let totalContentHeight = contentSize.height + topPadding
 
-        // When keyboard is visible, cap so modal fits between keyboard and top of screen.
-        // .ignoresSafeArea(.keyboard) keeps screenSize stable so this math is correct.
         if keyboardHeight > 0 {
             let topMargin: CGFloat = 44
             let availableHeight = screenSize.height - keyboardHeight - appearance.bottomPadding - topMargin
@@ -187,21 +163,29 @@ public final class ModalCoordinator {
         appearance.showsDragIndicator ? 36 : 16
     }
 
-    /// Bottom inset applied to content within the modal
-    public var contentBottomInset: CGFloat {
-        0
-    }
-
     /// Whether content exceeds the maximum modal height and needs SDK-level scrolling.
     /// When false, the SDK's ScrollView is disabled so user-provided scrollable
     /// content (List, ScrollView, etc.) can handle its own scrolling without nesting.
     public var contentNeedsScroll: Bool {
         guard screenSize.height > 0 else { return false }
         let maxHeight = screenSize.height * appearance.maxHeightRatio
-        return contentSize.height + topPadding + contentBottomInset > maxHeight
+        return contentSize.height + topPadding > maxHeight
     }
 
     // MARK: - Gesture Support
+
+    /// Converts a raw drag translation into a visual offset with resistance applied
+    /// - Parameter translation: Raw vertical translation from the drag gesture
+    /// - Returns: Visual offset with resistance curves applied
+    func dragOffset(for translation: CGFloat) -> CGFloat {
+        if translation < 0 {
+            // Upward: smoother resistance curve
+            return -pow(abs(translation), 0.7) * 1.2
+        } else {
+            // Downward: progressive resistance (easy start, harder at end)
+            return pow(translation, 0.85) * 1.5
+        }
+    }
 
     /// Updates drag offset during gesture
     /// - Parameter offset: Current drag offset
@@ -220,8 +204,7 @@ public final class ModalCoordinator {
         if shouldDismiss && behavior.isDragToDismissEnabled {
             dismiss()
         } else {
-            // Return to original position
-            withAnimation(dragAnimation) {
+            withAnimation(effectiveAnimation.drag) {
                 dragOffset = 0
             }
         }

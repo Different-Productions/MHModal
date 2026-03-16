@@ -2,6 +2,19 @@ import Testing
 import SwiftUI
 @testable import MHModal
 
+/// A clock that returns immediately from sleep, for deterministic testing.
+struct ImmediateClock: Clock {
+    typealias Duration = Swift.Duration
+    typealias Instant = ContinuousClock.Instant
+
+    var now: Instant { ContinuousClock().now }
+    var minimumResolution: Duration { .zero }
+
+    func sleep(until deadline: Instant, tolerance: Duration?) async throws {
+        // Return immediately
+    }
+}
+
 @MainActor
 struct ModalCoordinatorTests {
 
@@ -79,6 +92,20 @@ struct ModalCoordinatorTests {
         #expect(coordinator.isMorphing == false)
     }
 
+    @Test func morphResetCompletesAfterDelay() async {
+        let coordinator = ModalCoordinator()
+        coordinator.clock = ImmediateClock()
+
+        coordinator.updateContentSize(CGSize(width: 300, height: 200))
+        #expect(coordinator.isMorphing == true)
+
+        // Let the morph reset task execute (ImmediateClock returns from sleep instantly)
+        await Task.yield()
+        await Task.yield()
+
+        #expect(coordinator.isMorphing == false)
+    }
+
     // MARK: - Screen Size
 
     @Test func updateScreenSize() {
@@ -107,7 +134,7 @@ struct ModalCoordinatorTests {
         coordinator.screenSize = CGSize(width: 375, height: 812)
         coordinator.contentSize = CGSize(width: 300, height: 200)
 
-        let expectedHeight = 200 + coordinator.topPadding + coordinator.contentBottomInset
+        let expectedHeight = 200 + coordinator.topPadding
         #expect(coordinator.modalHeight == expectedHeight)
     }
 
@@ -148,12 +175,6 @@ struct ModalCoordinatorTests {
         #expect(coordinator.topPadding == 16)
     }
 
-    @Test func contentBottomInsetIsAlwaysZero() {
-        let coordinator = ModalCoordinator()
-
-        #expect(coordinator.contentBottomInset == 0)
-    }
-
     // MARK: - Content Needs Scroll
 
     @Test func contentNeedsScrollWhenExceedingMaxHeight() {
@@ -190,6 +211,32 @@ struct ModalCoordinatorTests {
         #expect(coordinator.dragOffset == 50)
     }
 
+    @Test func dragOffsetAppliesDownwardResistance() {
+        let coordinator = ModalCoordinator()
+
+        let offset = coordinator.dragOffset(for: 100)
+
+        #expect(offset > 0)
+        #expect(offset < 100, "Downward drag should apply resistance")
+    }
+
+    @Test func dragOffsetAppliesUpwardResistance() {
+        let coordinator = ModalCoordinator()
+
+        let offset = coordinator.dragOffset(for: -100)
+
+        #expect(offset < 0)
+        #expect(offset > -100, "Upward drag should apply stronger resistance")
+    }
+
+    @Test func dragOffsetIsZeroForZeroTranslation() {
+        let coordinator = ModalCoordinator()
+
+        let offset = coordinator.dragOffset(for: 0)
+
+        #expect(offset == 0)
+    }
+
     @Test(arguments: [
         (translation: 150.0, velocity: 50.0, dragEnabled: true, expectedDismissed: true),
         (translation: 50.0, velocity: 200.0, dragEnabled: true, expectedDismissed: true),
@@ -222,6 +269,20 @@ struct ModalCoordinatorTests {
         #expect(coordinator.isPresented == true)
         // dragOffset is reset inside withAnimation, so value is set synchronously
         #expect(coordinator.dragOffset == 0, "Drag offset should reset when not dismissed")
+    }
+
+    // MARK: - Effective Animation
+
+    @Test func effectiveAnimationRespectsReduceMotion() {
+        let coordinator = ModalCoordinator()
+
+        coordinator.reduceMotion = false
+        let standard = coordinator.effectiveAnimation
+        #expect(standard.morph == coordinator.animation.morph)
+
+        coordinator.reduceMotion = true
+        let reduced = coordinator.effectiveAnimation
+        #expect(reduced.morph == ModalAnimation.reduced.morph)
     }
 
     // MARK: - Convenience Initializers

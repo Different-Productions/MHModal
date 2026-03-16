@@ -20,6 +20,7 @@ extension View {
     ///   - isPresented: Binding that controls modal presentation
     ///   - appearance: Visual appearance configuration
     ///   - behavior: Interaction behavior configuration
+    ///   - animation: Animation configuration
     ///   - content: The content to display inside the modal
     ///
     /// Example:
@@ -32,6 +33,7 @@ extension View {
         isPresented: Binding<Bool>,
         appearance: ModalAppearance = .default,
         behavior: ModalBehavior = .default,
+        animation: ModalAnimation = .default,
         @ViewBuilder content: () -> Content
     ) -> some View {
         self.modifier(
@@ -39,6 +41,7 @@ extension View {
                 isPresented: isPresented,
                 appearance: appearance,
                 behavior: behavior,
+                animation: animation,
                 content: content
             )
         )
@@ -53,6 +56,7 @@ private struct PresentModalModifier<ModalContent: View>: ViewModifier {
     @Binding var isPresented: Bool
     let appearance: ModalAppearance
     let behavior: ModalBehavior
+    let animation: ModalAnimation
     let modalContent: ModalContent
 
     @State private var coordinator: ModalCoordinator
@@ -61,17 +65,19 @@ private struct PresentModalModifier<ModalContent: View>: ViewModifier {
         isPresented: Binding<Bool>,
         appearance: ModalAppearance,
         behavior: ModalBehavior,
+        animation: ModalAnimation,
         @ViewBuilder content: () -> ModalContent
     ) {
         self._isPresented = isPresented
         self.appearance = appearance
         self.behavior = behavior
+        self.animation = animation
         self.modalContent = content()
 
-        // Initialize coordinator with configuration
         self._coordinator = State(wrappedValue: ModalCoordinator(
             appearance: appearance,
-            behavior: behavior
+            behavior: behavior,
+            animation: animation
         ))
     }
 
@@ -83,6 +89,9 @@ private struct PresentModalModifier<ModalContent: View>: ViewModifier {
                 modalContent
             }
         }
+        // Bidirectional sync: the binding drives coordinator state via present()/dismiss(),
+        // and coordinator state (e.g. drag-to-dismiss) drives the binding back.
+        // Both onChange guards prevent re-entrancy by comparing before writing.
         .onChange(of: isPresented) { oldValue, newValue in
             if newValue != coordinator.isPresented {
                 if newValue {
@@ -114,6 +123,7 @@ extension View {
     ///   - phase: The current phase value. Changing this triggers a content transition.
     ///   - appearance: Visual appearance configuration
     ///   - behavior: Interaction behavior configuration
+    ///   - animation: Animation configuration
     ///   - transition: The transition applied when the phase changes. Defaults to `.modalCrossFade`.
     ///   - content: A view builder that produces content for the given phase.
     ///
@@ -132,13 +142,15 @@ extension View {
         phase: Phase,
         appearance: ModalAppearance = .default,
         behavior: ModalBehavior = .default,
+        animation: ModalAnimation = .default,
         transition: AnyTransition = .modalCrossFade,
         @ViewBuilder content: @escaping (Phase) -> ModalContent
     ) -> some View {
         presentModal(
             isPresented: isPresented,
             appearance: appearance,
-            behavior: behavior
+            behavior: behavior,
+            animation: animation
         ) {
             ModalContentTransition(
                 phase: phase,
