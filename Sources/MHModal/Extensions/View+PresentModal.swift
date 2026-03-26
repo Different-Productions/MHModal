@@ -71,6 +71,7 @@ extension View {
         isPresented: isPresented,
         appearance: appearance,
         behavior: behavior,
+        transitionID: nil,
         content: content
       )
     )
@@ -81,37 +82,34 @@ extension View {
 
 extension View {
 
-  /// Presents a self-sizing sheet modal with automatic content transitions between phases.
+  /// Presents a self-sizing sheet modal with synchronized content transitions between phases.
   ///
-  /// When the `phase` value changes, the old content transitions out and new content
-  /// transitions in while the sheet height morphs smoothly.
+  /// When the `phase` value changes, the old content cross-dissolves out while
+  /// the sheet height morphs to the new content — all in a single synchronized
+  /// animation (the DPWhatsNew pattern).
   ///
   /// - Parameters:
   ///   - isPresented: Binding that controls modal presentation.
   ///   - phase: The current phase value. Changing this triggers a content transition.
   ///   - appearance: Visual appearance configuration.
   ///   - behavior: Interaction behavior configuration.
-  ///   - transition: The transition applied when the phase changes.
   ///   - content: A view builder that produces content for the given phase.
   public func presentModal<Phase: Hashable, ModalContent: View>(
     isPresented: Binding<Bool>,
     phase: Phase,
     appearance: ModalAppearance = .default,
     behavior: ModalBehavior = .default,
-    transition: AnyTransition = .modalCrossFade,
     @ViewBuilder content: @escaping (Phase) -> ModalContent
   ) -> some View {
-    presentModal(
-      isPresented: isPresented,
-      appearance: appearance,
-      behavior: behavior
-    ) {
-      ModalContentTransition(
-        phase: phase,
-        transition: transition,
-        content: content
+    self.modifier(
+      PresentModalModifier(
+        isPresented: isPresented,
+        appearance: appearance,
+        behavior: behavior,
+        transitionID: AnyHashable(phase),
+        content: { ModalContentTransition(phase: phase, content: content) }
       )
-    }
+    )
   }
 }
 
@@ -151,6 +149,7 @@ private struct PresentModalModifier<ModalContent: View>: ViewModifier {
   @Binding var isPresented: Bool
   let appearance: ModalAppearance
   let behavior: ModalBehavior
+  let transitionID: AnyHashable?
   let content: () -> ModalContent
 
   func body(content: Content) -> some View {
@@ -160,6 +159,7 @@ private struct PresentModalModifier<ModalContent: View>: ViewModifier {
           isPresented: $isPresented,
           appearance: appearance,
           behavior: behavior,
+          transitionID: transitionID,
           content: self.content
         )
       )
