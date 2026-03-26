@@ -1,158 +1,95 @@
-//
-//  MHModalPresenter.swift
-//  MHModal
-//
-//  UIViewControllerRepresentable that drives native sheet presentation
-//  with self-sizing detents from a background representable.
-//
-
-#if canImport(UIKit)
+#if os(iOS)
 import SwiftUI
 import UIKit
 
-// MARK: - Self-Sizing Hosting Controller
-
-/// A hosting controller that watches its own layout and invalidates the
-/// sheet's detents whenever the SwiftUI content changes height.
-/// This is what makes internal state changes (expanding sections, adding
-/// list items, navigating between views) morph the sheet automatically.
-final class SelfSizingHostingController<Content: View>: UIHostingController<Content> {
-
-  private var lastKnownHeight: CGFloat = 0
-
-  override func viewDidLayoutSubviews() {
-    super.viewDidLayoutSubviews()
-    guard presentingViewController != nil else { return }
-    let newHeight = view.intrinsicContentSize.height
-    guard newHeight != lastKnownHeight, newHeight > 0 else { return }
-    lastKnownHeight = newHeight
-    if let sheet = sheetPresentationController {
-      sheet.animateChanges {
-        sheet.invalidateDetents()
-      }
-    }
-  }
-}
-
-// MARK: - Presenter
-
-/// An invisible representable placed as a `.background()` that owns the
-/// full UIKit presentation lifecycle: create → configure → present → dismiss.
 struct MHModalPresenter<ModalContent: View>: UIViewControllerRepresentable {
 
   @Binding var isPresented: Bool
   let appearance: ModalAppearance
   let behavior: ModalBehavior
+  let transitionID: AnyHashable?
   let content: () -> ModalContent
 
-  // MARK: - UIViewControllerRepresentable
+  func makeCoordinator() -> Coordinator {
+    Coordinator(parent: self)
+  }
 
   func makeUIViewController(context: Context) -> UIViewController {
-    let host = UIViewController()
-    host.view.backgroundColor = .clear
-    return host
+    UIViewController()
   }
 
   func updateUIViewController(_ host: UIViewController, context: Context) {
     let coordinator = context.coordinator
-    coordinator.binding = $isPresented
+    coordinator.parent = self
 
     if isPresented {
-      if let hosting = coordinator.presentedHosting {
-        // Already presented — update content (phase changes, etc.)
-        // Height morphing is handled by SelfSizingHostingController.
-        hosting.rootView = content()
-        hosting.view.backgroundColor = UIColor(appearance.background)
-        hosting.isModalInPresentation = !behavior.isDismissible
+      if coordinator.sheetController == nil {
+        coordinator.present(from: host)
+      } else if let nav = coordinator.sheetController {
+        // Already presented — check for phase transition
+        let needsTransition = transitionID != nil
+          && transitionID != coordinator.lastTransitionID
 
-        if let sheet = hosting.sheetPresentationController {
-          sheet.prefersGrabberVisible = appearance.showGrabber
-          if let cornerRadius = appearance.cornerRadius {
-            sheet.preferredCornerRadius = cornerRadius
-          }
+        if needsTransition {
+          let hosting = coordinator.makeHosting()
+          hosting.navigationItem.hidesBackButton = true
+          nav.pushViewController(hosting, animated: true)
+          coordinator.lastTransitionID = transitionID
+        } else if let hosting = nav.topViewController as? ModalHostingController {
+          hosting.rootView = AnyView(
+            coordinator.parent.content()
+              .environment(\.modalNavigator, coordinator.navigator)
+          )
         }
-      } else {
-        // First presentation
-        let hosting = SelfSizingHostingController(rootView: content())
-        hosting.sizingOptions = .intrinsicContentSize
-        hosting.view.backgroundColor = UIColor(appearance.background)
-        hosting.isModalInPresentation = !behavior.isDismissible
-        coordinator.presentedHosting = hosting
+      }
+    } else {
+      if coordinator.sheetController != nil {
+        host.dismiss(animated: true)
+        coordinator.sheetController = nil
+      }
+    }
+  }
 
-        if let sheet = hosting.sheetPresentationController {
-          configureSheet(sheet, hosting: hosting)
-          sheet.delegate = coordinator
-        }
+  @MainActor
+  final class Coordinator {
+    var parent: MHModalPresenter
+    var sheetController: ModalViewController?
+    var lastTransitionID: AnyHashable?
+    let navigator = ModalNavigator()
 
+    init(parent: MHModalPresenter) {
+      self.parent = parent
+    }
+
+    func present(from host: UIViewController) {
+      let rootHosting = makeHosting()
+      let vc = ModalViewController(rootViewController: rootHosting)
+      vc.view.backgroundColor = UIColor(parent.appearance.background)
+      vc.modalPresentationStyle = .pageSheet
+      vc.isModalInPresentation = !parent.behavior.isDismissible
+      vc.configureSheet()
+      navigator.modalVC = vc
+      lastTransitionID = parent.transitionID
+
+      vc.onDismissed = { [weak self] in
+        self?.sheetController = nil
         DispatchQueue.main.async {
-          guard coordinator.presentedHosting === hosting else { return }
-          guard host.presentedViewController == nil else { return }
-          host.present(hosting, animated: true)
+          self?.parent.isPresented = false
         }
       }
-    } else {
-      if let hosting = coordinator.presentedHosting {
-        coordinator.presentedHosting = nil
-        if hosting.presentingViewController != nil {
-          host.dismiss(animated: true)
-        }
-      }
-    }
-  }
 
-  func makeCoordinator() -> Coordinator {
-    Coordinator(binding: $isPresented)
-  }
-
-  // MARK: - Sheet Configuration
-
-  private func configureSheet(
-    _ sheet: UISheetPresentationController,
-    hosting: SelfSizingHostingController<ModalContent>
-  ) {
-    let selfSizing = UISheetPresentationController.Detent.custom(
-      identifier: .init("selfSizing")
-    ) { [weak hosting] _ in
-      hosting?.view.intrinsicContentSize.height
+      sheetController = vc
+      host.present(vc, animated: true)
     }
 
-    if let ratio = appearance.maxHeightRatio {
-      let percentage = UISheetPresentationController.Detent.custom(
-        identifier: .init("maxHeight")
-      ) { context in
-        context.maximumDetentValue * ratio
-      }
-      sheet.detents = [selfSizing, percentage]
-    } else {
-      sheet.detents = [selfSizing]
-    }
-
-    sheet.prefersGrabberVisible = appearance.showGrabber
-
-    if let cornerRadius = appearance.cornerRadius {
-      sheet.preferredCornerRadius = cornerRadius
-    }
-
-    if !appearance.dimBackground {
-      sheet.largestUndimmedDetentIdentifier = .init("selfSizing")
-    }
-  }
-
-  // MARK: - Coordinator
-
-  final class Coordinator: NSObject, UISheetPresentationControllerDelegate {
-    var binding: Binding<Bool>
-    var presentedHosting: SelfSizingHostingController<ModalContent>?
-
-    init(binding: Binding<Bool>) {
-      self.binding = binding
-    }
-
-    func presentationControllerDidDismiss(
-      _ presentationController: UIPresentationController
-    ) {
-      binding.wrappedValue = false
-      presentedHosting = nil
+    func makeHosting() -> ModalHostingController {
+      let hosting = ModalHostingController(rootView: AnyView(
+        parent.content()
+          .environment(\.modalNavigator, navigator)
+          .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+      ))
+      hosting.view.backgroundColor = UIColor(parent.appearance.background)
+      return hosting
     }
   }
 }
